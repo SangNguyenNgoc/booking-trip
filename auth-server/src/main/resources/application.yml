@@ -1,0 +1,37 @@
+server:
+  port: 9000
+spring:
+  datasource:
+    driverClassName: com.mysql.cj.jdbc.Driver
+    url: jdbc:mysql://booking-trips-do-user-16095558-0.h.db.ondigitalocean.com:25060/auth
+    username: doadmin
+    password: AVNS_SzfyhBrRAiFAS2hn4Eo
+  servlet:
+    multipart:
+      max-file-size: 5MB
+      max-request-size: 5MB
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: true
+    properties:
+      hibernate:
+        format_sql: false
+        dialect: org.hibernate.dialect.MySQL8Dialect
+  application:
+    name: auth-server
+  config:
+    import: optional:configserver:http://localhost:8081
+client:
+  client-id: web-client
+  redirect-uris:
+    - http://localhost:8080/authorized
+    - http://oauth.pstmn.io/v1/callback
+#    - ${SSL}://${DOMAIN}
+    - http://localhost:${server.port}/swagger-ui/oauth2-redirect.html
+  settings:
+    require-authorization-consent: false
+    require-proof-key: true
+token:
+  key-size: 2048
+  access-token-time-to-live: 7
