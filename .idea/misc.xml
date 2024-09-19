@@ -9,6 +9,7 @@
         <option value="$PROJECT_DIR$/app/demo/pom.xml" />
         <option value="$PROJECT_DIR$/app/test/pom.xml" />
         <option value="$PROJECT_DIR$/discovery/pom.xml" />
+        <option value="$PROJECT_DIR$/location/pom.xml" />
       </list>
     </option>
     <option name="ignoredFiles">
