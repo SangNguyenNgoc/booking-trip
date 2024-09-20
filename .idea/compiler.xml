@@ -7,12 +7,10 @@
         <sourceOutputDir name="target/generated-sources/annotations" />
         <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
         <outputRelativeToContentRoot value="true" />
-        <module name="config-server" />
-        <module name="location" />
         <module name="gateway" />
         <module name="discovery" />
       </profile>
-      <profile name="Annotation profile for auth-server" enabled="true">
+      <profile name="Annotation profile for location" enabled="true">
         <sourceOutputDir name="target/generated-sources/annotations" />
         <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
         <outputRelativeToContentRoot value="true" />
@@ -22,10 +20,12 @@
           <entry name="$MAVEN_REPOSITORY$/org/mapstruct/mapstruct-processor/1.5.5.Final/mapstruct-processor-1.5.5.Final.jar" />
           <entry name="$MAVEN_REPOSITORY$/org/mapstruct/mapstruct/1.5.5.Final/mapstruct-1.5.5.Final.jar" />
         </processorPath>
+        <module name="location" />
         <module name="auth-server" />
       </profile>
     </annotationProcessing>
     <bytecodeTargetLevel>
+      <module name="config-server" target="17" />
       <module name="demo" target="17" />
       <module name="test" target="17" />
     </bytecodeTargetLevel>
