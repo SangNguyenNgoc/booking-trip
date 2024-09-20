@@ -6,8 +6,6 @@ spring:
       discovery:
         locator:
           enabled: true
-  config:
-    import: optional:configserver:http://localhost:8081
 
 server:
   port: 8080

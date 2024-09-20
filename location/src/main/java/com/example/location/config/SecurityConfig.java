@@ -1,7 +1,9 @@
 package com.example.location.config;
 
+import com.example.location.utils.auditing.ApplicationAuditAware;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.data.domain.AuditorAware;
 import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -22,5 +24,10 @@ public class SecurityConfig {
                 );
         httpSecurity.oauth2ResourceServer(resource -> resource.jwt(Customizer.withDefaults()));
         return httpSecurity.build();
+    }
+
+    @Bean
+    public AuditorAware<String> auditorAware() {
+        return new ApplicationAuditAware();
     }
 }
