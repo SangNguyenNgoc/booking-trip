@@ -1,8 +1,7 @@
 package org.example.authserver.service;
 
 import lombok.RequiredArgsConstructor;
-import org.example.authserver.entities.AccountCreateRequest;
-import org.example.authserver.entities.Role;
+import org.example.authserver.dto.AccountCreateRequest;
 import org.example.authserver.interfaces.RoleRepository;
 import org.example.authserver.interfaces.UserMapper;
 import org.example.authserver.interfaces.UserRepository;

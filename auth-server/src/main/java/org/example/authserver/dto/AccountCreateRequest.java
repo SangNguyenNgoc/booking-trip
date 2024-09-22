@@ -1,22 +1,28 @@
-package org.example.authserver.entities;
+package org.example.authserver.dto;
 
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Pattern;
+import lombok.Getter;
+import lombok.RequiredArgsConstructor;
+import lombok.Setter;
 import lombok.Value;
+import org.example.authserver.entities.User;
 
 import java.io.Serializable;
 
 /**
  * DTO for {@link User}
  */
-@Value
+@Setter
+@Getter
+@RequiredArgsConstructor
 public class AccountCreateRequest implements Serializable {
     @NotBlank(message = "profile Id must not be blank")
-    String profileId;
-    @Email(message = "Email  invalid")
-    String email;
+    private String profileId;
+    @Email(message = "User name invalid")
+    private String username;
     @Pattern(message = "Password invalid", regexp = "^(?=.*[a-z])(?=.*[A-Z])(?=.*[\\W_]).{8,}$ ")
     @NotBlank(message = "password must not be blank")
-    String password;
+    private String password;
 }

@@ -28,8 +28,8 @@ public class User implements UserDetails {
     @Column(name = "profile_id", nullable = false)
     private String profileId;
 
-    @Column(name = "email", unique = true, nullable = false)
-    private String email;
+    @Column(name = "username", unique = true, nullable = true)
+    private String username;
 
     @Column(name = "password", length = 500, nullable = false)
     private String password;
