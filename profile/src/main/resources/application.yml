@@ -1,9 +1,10 @@
 server:
-  port: 9000
+  port: 8083
+
 spring:
   datasource:
     driverClassName: com.mysql.cj.jdbc.Driver
-    url: jdbc:mysql://${MYSQL_HOST}:${MYSQL_PORT}/auth
+    url: jdbc:mysql://${MYSQL_HOST}:${MYSQL_PORT}/profile
     username: ${MYSQL_USER}
     password: ${MYSQL_PASS}
   servlet:
@@ -19,7 +20,12 @@ spring:
         format_sql: false
         dialect: org.hibernate.dialect.MySQL8Dialect
   application:
-    name: auth-server
+    name: profile
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          issuer-uri: http://localhost:9000
   kafka:
     bootstrap-servers: ${BOOTSTRAP1}
     producer:
@@ -35,19 +41,17 @@ spring:
               request:
                 per:
                   connection: 5
-    consumer:
-      value-deserializer: org.apache.kafka.common.serialization.ByteArrayDeserializer
-      auto-offset-reset: earliest
-client:
-  client-id: web-client
-  redirect-uris:
-    - http://localhost:8080/authorized
-    - http://oauth.pstmn.io/v1/callback
-#    - ${SSL}://${DOMAIN}
-    - http://localhost:${server.port}/swagger-ui/oauth2-redirect.html
-  settings:
-    require-authorization-consent: false
-    require-proof-key: true
-token:
-  key-size: 2048
-  access-token-time-to-live: 7
+
+logging:
+  level:
+    org.springframework.cache: trace
+    org.ehcache: trace
+    org.hibernate.SQL: debug
+    org.hibernate.type.descriptor.sql.BasicBinder: trace
+
+eureka:
+  instance:
+    hostname: ${EUREKA_HOST}
+  client:
+    service-url:
+      defaultZone: ${EUREKA_DEFAULT_ZONE}

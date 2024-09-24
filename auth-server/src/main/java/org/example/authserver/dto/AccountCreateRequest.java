@@ -3,10 +3,7 @@ package org.example.authserver.dto;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Pattern;
-import lombok.Getter;
-import lombok.RequiredArgsConstructor;
-import lombok.Setter;
-import lombok.Value;
+import lombok.*;
 import org.example.authserver.entities.User;
 
 import java.io.Serializable;
@@ -16,7 +13,8 @@ import java.io.Serializable;
  */
 @Setter
 @Getter
-@RequiredArgsConstructor
+@AllArgsConstructor
+@NoArgsConstructor
 public class AccountCreateRequest implements Serializable {
     @NotBlank(message = "profile Id must not be blank")
     private String profileId;

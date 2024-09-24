@@ -34,6 +34,9 @@ public class User implements UserDetails {
     @Column(name = "password", length = 500, nullable = false)
     private String password;
 
+    @Column(name = "verify", nullable = false)
+    private Boolean verify;
+
     @ManyToOne(fetch = FetchType.EAGER, cascade = CascadeType.ALL)
     @JoinColumn(
             name = "role_id",
@@ -71,7 +74,7 @@ public class User implements UserDetails {
 
     @Override
     public boolean isEnabled() {
-        return true;
+        return verify;
     }
 
 }

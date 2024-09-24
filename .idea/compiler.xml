@@ -10,7 +10,7 @@
         <module name="gateway" />
         <module name="discovery" />
       </profile>
-      <profile name="Annotation profile for location" enabled="true">
+      <profile name="Annotation profile for profile" enabled="true">
         <sourceOutputDir name="target/generated-sources/annotations" />
         <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
         <outputRelativeToContentRoot value="true" />
@@ -21,6 +21,7 @@
           <entry name="$MAVEN_REPOSITORY$/org/mapstruct/mapstruct/1.5.5.Final/mapstruct-1.5.5.Final.jar" />
         </processorPath>
         <module name="location" />
+        <module name="profile" />
         <module name="auth-server" />
       </profile>
     </annotationProcessing>
@@ -38,6 +39,7 @@
       <module name="discovery" options="-parameters" />
       <module name="gateway" options="-parameters" />
       <module name="location" options="-parameters" />
+      <module name="profile" options="-parameters" />
       <module name="test" options="-parameters" />
     </option>
   </component>
