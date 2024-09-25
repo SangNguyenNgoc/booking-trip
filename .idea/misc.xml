@@ -18,6 +18,8 @@
       <set>
         <option value="$PROJECT_DIR$/app/demo/pom.xml" />
         <option value="$PROJECT_DIR$/config-server/pom.xml" />
+        <option value="$PROJECT_DIR$/discovery/pom.xml" />
+        <option value="$PROJECT_DIR$/gateway/pom.xml" />
       </set>
     </option>
   </component>

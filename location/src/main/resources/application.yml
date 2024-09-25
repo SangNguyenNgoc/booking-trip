@@ -25,7 +25,7 @@ server:
 
 eureka:
   instance:
-    hostname: ${EUREKA_HOST}
+    hostname: localhost
   client:
     service-url:
       defaultZone: ${EUREKA_DEFAULT_ZONE}
@@ -40,3 +40,10 @@ logging:
 springdoc:
   swagger-ui:
     path: /swagger-ui.html
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: info, health
+
