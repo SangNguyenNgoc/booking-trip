@@ -3,8 +3,10 @@ package com.example.location.api.controllers;
 import com.example.location.api.dtos.location.LocationCreate;
 import com.example.location.api.dtos.location.LocationInfo;
 import com.example.location.api.dtos.location.LocationName;
+import com.example.location.api.dtos.location.LocationUpdate;
 import com.example.location.api.services.interfaces.LocationService;
 import com.example.location.utils.dtos.ListResponse;
+import com.example.location.utils.dtos.PageResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -26,8 +28,11 @@ public class LocationController {
     }
 
     @GetMapping
-    public ResponseEntity<ListResponse<LocationInfo>> getAllLocations() {
-        return ResponseEntity.ok(locationService.getALlLocations());
+    public ResponseEntity<PageResponse<LocationInfo>> getAllLocations(
+            @RequestParam(value = "page") Integer pageNo,
+            @RequestParam(value = "size") Integer pageSize
+    ) {
+        return ResponseEntity.ok(locationService.getALlLocations(pageNo - 1, pageSize));
     }
 
     @GetMapping("/{slug}")
@@ -39,4 +44,30 @@ public class LocationController {
     public ResponseEntity<ListResponse<LocationName>> getAllLocationNames() {
         return ResponseEntity.ok(locationService.getLocationNames());
     }
+
+    @PutMapping
+    @PreAuthorize("hasAuthority('SCOPE_ROLE_ADMIN')")
+    public ResponseEntity<LocationInfo> updateLocation(@RequestBody LocationUpdate locationUpdate) {
+        return ResponseEntity.ok(locationService.updateLocation(locationUpdate));
+    }
+
+    @PutMapping("/{locationId}/region")
+    @PreAuthorize("hasAuthority('SCOPE_ROLE_ADMIN')")
+    public ResponseEntity<LocationInfo> updateLocation(
+            @PathVariable Long locationId,
+            @RequestParam(value = "region") String regionSlug
+    ) {
+        return ResponseEntity.ok(locationService.updateRegionInLocation(locationId, regionSlug));
+    }
+
+    @PutMapping("/{locationId}/active")
+    @PreAuthorize("hasAuthority('SCOPE_ROLE_ADMIN')")
+    public ResponseEntity<Void> toggleActiveLocation(
+            @PathVariable Long locationId
+    ) {
+        locationService.toggleActiveLocation(locationId);
+        return ResponseEntity.status(HttpStatus.OK).build();
+    }
+
+
 }
