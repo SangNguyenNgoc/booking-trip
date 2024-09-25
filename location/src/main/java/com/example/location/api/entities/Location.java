@@ -32,6 +32,9 @@ public class Location extends AuditorEntity {
     @Column(name = "description", columnDefinition = "TEXT", nullable = false)
     private String description;
 
+    @Column(name = "active", nullable = false)
+    private Boolean active;
+
     @ManyToOne(fetch = FetchType.EAGER, cascade = CascadeType.PERSIST)
     @JoinColumn(
             name = "region_id",

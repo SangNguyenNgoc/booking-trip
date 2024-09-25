@@ -22,4 +22,6 @@ public class LocationInfo implements Serializable {
     private String phoneNumber;
     private String description;
     private RegionInfo region;
+    private Boolean active;
+
 }

@@ -14,6 +14,6 @@ public interface LocationRepository extends JpaRepository<Location, Long> {
 
     Optional<Location> findBySlug(String slug);
 
-    @Query("select l from locations l")
+    @Query("select l from locations l where l.active = true")
     List<Location> getAllLocationNames();
 }
