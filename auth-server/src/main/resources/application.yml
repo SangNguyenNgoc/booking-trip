@@ -51,3 +51,15 @@ client:
 token:
   key-size: 2048
   access-token-time-to-live: 7
+
+management:
+  tracing:
+    sampling:
+      probability: 1
+  zipkin:
+    tracing:
+      endpoint: ${BASE_URL}/api/v2/spans
+  endpoints:
+    web:
+      exposure:
+        include: info, health

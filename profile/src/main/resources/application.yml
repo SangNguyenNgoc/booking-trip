@@ -55,3 +55,15 @@ eureka:
   client:
     service-url:
       defaultZone: ${EUREKA_DEFAULT_ZONE}
+
+management:
+  tracing:
+    sampling:
+      probability: 1
+  zipkin:
+    tracing:
+      endpoint: ${BASE_URL}/api/v2/spans
+  endpoints:
+    web:
+      exposure:
+        include: info, health
