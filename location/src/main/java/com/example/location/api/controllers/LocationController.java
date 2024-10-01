@@ -40,6 +40,15 @@ public class LocationController {
         return ResponseEntity.ok(locationService.getLocationBySlug(slug));
     }
 
+    @GetMapping("/region/{regionId}")
+    public ResponseEntity<PageResponse<LocationInfo>> getLocationByRegion(
+            @PathVariable String regionId,
+            @RequestParam(value = "page") Integer pageNo,
+            @RequestParam(value = "size") Integer pageSize
+    ) {
+        return ResponseEntity.ok(locationService.getLocationByRegion(regionId, pageNo - 1, pageSize));
+    }
+
     @GetMapping("/names")
     public ResponseEntity<ListResponse<LocationName>> getAllLocationNames() {
         return ResponseEntity.ok(locationService.getLocationNames());
@@ -54,7 +63,7 @@ public class LocationController {
     @PutMapping("/{locationId}/region")
     @PreAuthorize("hasAuthority('SCOPE_ROLE_ADMIN')")
     public ResponseEntity<LocationInfo> updateLocation(
-            @PathVariable Long locationId,
+            @PathVariable String locationId,
             @RequestParam(value = "region") String regionSlug
     ) {
         return ResponseEntity.ok(locationService.updateRegionInLocation(locationId, regionSlug));
@@ -63,7 +72,7 @@ public class LocationController {
     @PutMapping("/{locationId}/active")
     @PreAuthorize("hasAuthority('SCOPE_ROLE_ADMIN')")
     public ResponseEntity<Void> toggleActiveLocation(
-            @PathVariable Long locationId
+            @PathVariable String locationId
     ) {
         locationService.toggleActiveLocation(locationId);
         return ResponseEntity.status(HttpStatus.OK).build();

@@ -15,13 +15,15 @@ public interface LocationService {
 
     LocationInfo getLocationBySlug(String slug);
 
-    LocationInfo getLocationById(Long locationId);
+    PageResponse<LocationInfo> getLocationByRegion(String region, Integer pageNo, Integer pageSize);
+
+    LocationInfo getLocationById(String locationId);
 
     ListResponse<LocationName> getLocationNames();
 
     LocationInfo updateLocation(LocationUpdate locationUpdate);
 
-    LocationInfo updateRegionInLocation(Long locationId, String regionSlug);
+    LocationInfo updateRegionInLocation(String locationId, String regionSlug);
 
-    void toggleActiveLocation(Long locationId);
+    void toggleActiveLocation(String locationId);
 }

@@ -1,46 +1,28 @@
 package com.example.location.api.entities;
 
-import com.example.location.utils.auditing.AuditorEntity;
-import jakarta.persistence.*;
 import lombok.*;
+import org.springframework.data.mongodb.core.mapping.DBRef;
+import org.springframework.data.mongodb.core.mapping.Document;
 
 @Getter
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-@Entity(name = "locations")
-public class Location extends AuditorEntity {
+@Document(collection = "locations")
+public class Location {
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "id", nullable = false)
-    private Long id;
-
-    @Column(name = "name", nullable = false)
+    private String id;
     private String name;
-
-    @Column(name = "address", nullable = false)
-    private String address;
-
-    @Column(name = "slug", nullable = false)
     private String slug;
-
-    @Column(name = "phone_number", nullable = false, unique = true)
-    private String phoneNumber;
-
-    @Column(name = "description", columnDefinition = "TEXT", nullable = false)
+    private String type;
+    private String address;
+    private String hotline;
     private String description;
-
-    @Column(name = "active", nullable = false)
+    private String latitude;
+    private String longitude;
     private Boolean active;
 
-    @ManyToOne(fetch = FetchType.EAGER, cascade = CascadeType.PERSIST)
-    @JoinColumn(
-            name = "region_id",
-            referencedColumnName = "id",
-            nullable = false
-    )
+    @DBRef
     private Region region;
-
 }

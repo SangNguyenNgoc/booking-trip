@@ -15,14 +15,15 @@ import com.example.location.utils.exception.InputInvalidException;
 import com.example.location.utils.services.AppUtils;
 import com.example.location.utils.services.ObjectsValidator;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.awt.print.Pageable;
 import java.util.List;
 import java.util.stream.Collectors;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class DefaultLocationService implements LocationService {
@@ -40,14 +41,16 @@ public class DefaultLocationService implements LocationService {
         var region = regionRepository.findBySlug(locationCreate.getRegionSlug()).orElseThrow(
                 () -> new DataNotFoundException(List.of("Region not found"))
         );
-        if(locationRepository.existsByPhoneNumber(locationCreate.getPhoneNumber())) {
+        if(locationRepository.existsByHotline(locationCreate.getHotline())) {
             throw new InputInvalidException(List.of("Phone number already exists"));
         }
         var location = locationMapper.toEntity(locationCreate);
         location.setSlug(appUtils.toSlug(locationCreate.getName()));
+        location.setType("bus_station");
+        location.setActive(true);
         location.setRegion(region);
         var result = locationRepository.save(location);
-        return locationMapper.toDto(location);
+        return locationMapper.toDto(result);
     }
 
     @Override
@@ -59,7 +62,7 @@ public class DefaultLocationService implements LocationService {
                 .data(locationPage.getContent().stream().map(locationMapper::toDto).collect(Collectors.toList()))
                 .build();
         return PageResponse.<LocationInfo>builder()
-                .currentPage(pageNo)
+                .currentPage(pageNo + 1)
                 .totalPage(locationPage.getTotalPages())
                 .data(locations)
                 .build();
@@ -74,11 +77,26 @@ public class DefaultLocationService implements LocationService {
     }
 
     @Override
-    public LocationInfo getLocationById(Long locationId) {
+    public LocationInfo getLocationById(String locationId) {
         var location = locationRepository.findById(locationId).orElseThrow(
                 () -> new DataNotFoundException(List.of("Location not found"))
         );
         return locationMapper.toDto(location);
+    }
+
+    @Override
+    public PageResponse<LocationInfo> getLocationByRegion(String region, Integer pageNo, Integer pageSize) {
+        PageRequest page = PageRequest.of(pageNo, pageSize);
+        var locationPage = locationRepository.findByRegionId(region, page);
+        var locations = ListResponse.<LocationInfo>builder()
+                .size(locationPage.getSize())
+                .data(locationPage.getContent().stream().map(locationMapper::toDto).collect(Collectors.toList()))
+                .build();
+        return PageResponse.<LocationInfo>builder()
+                .currentPage(pageNo + 1)
+                .totalPage(locationPage.getTotalPages())
+                .data(locations)
+                .build();
     }
 
     @Override
@@ -103,17 +121,18 @@ public class DefaultLocationService implements LocationService {
             );
             location.setRegion(region);
         }
-        if(!locationUpdate.getPhoneNumber().equals(location.getPhoneNumber())
-                && locationRepository.existsByPhoneNumber(locationUpdate.getPhoneNumber())) {
+        if(!locationUpdate.getHotline().equals(location.getHotline())
+                && locationRepository.existsByHotline(locationUpdate.getHotline())) {
             throw new InputInvalidException(List.of("Phone number already exists"));
         }
         var locationUpdated = locationMapper.partialUpdate(locationUpdate, location);
+        locationRepository.save(locationUpdated);
         return locationMapper.toDto(locationUpdated);
     }
 
     @Override
     @Transactional
-    public LocationInfo updateRegionInLocation(Long locationId, String regionSlug) {
+    public LocationInfo updateRegionInLocation(String locationId, String regionSlug) {
         var location = locationRepository.findById(locationId).orElseThrow(
                 () -> new DataNotFoundException(List.of("Location not found"))
         );
@@ -122,13 +141,14 @@ public class DefaultLocationService implements LocationService {
                     () -> new DataNotFoundException(List.of("Region not found"))
             );
             location.setRegion(region);
+            locationRepository.save(location);
         }
         return locationMapper.toDto(location);
     }
 
     @Override
     @Transactional
-    public void toggleActiveLocation(Long locationId) {
+    public void toggleActiveLocation(String locationId) {
         var location = locationRepository.findById(locationId).orElseThrow(
                 () -> new DataNotFoundException(List.of("Location not found"))
         );

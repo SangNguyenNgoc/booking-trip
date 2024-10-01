@@ -15,13 +15,15 @@ import java.io.Serializable;
 @AllArgsConstructor
 @NoArgsConstructor
 public class LocationInfo implements Serializable {
-    private Long id;
+    private String id;
     private String name;
     private String address;
     private String slug;
-    private String phoneNumber;
+    private String hotline;
     private String description;
-    private RegionInfo region;
+    private String latitude;
+    private String longitude;
     private Boolean active;
+    private RegionInfo region;
 
 }

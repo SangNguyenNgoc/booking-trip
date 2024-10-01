@@ -1,19 +1,9 @@
 spring:
   application:
     name: location
-  datasource:
-    driver-class-name: com.mysql.cj.jdbc.Driver
-    url: jdbc:mysql://${MYSQL_HOST}:${MYSQL_PORT}/location
-    username: ${MYSQL_USER}
-    password: ${MYSQL_PASS}
-  jpa:
-    hibernate:
-      ddl-auto: update
-    show-sql: false
-    properties:
-      hibernate:
-        format_sql: false
-        dialect: org.hibernate.dialect.MySQL8Dialect
+  data:
+    mongodb:
+      uri: mongodb+srv://${LOCATION_DB_USER}:${LOCATION_DB_PASSWORD}@${LOCATION_DB_HOST}/${LOCATION_DB_DBNAME}?retryWrites=true&w=majority&appName=Cluster0
   security:
     oauth2:
       resourceserver:
@@ -32,10 +22,13 @@ eureka:
 
 logging:
   level:
-    org.springframework.cache: trace
-    org.ehcache: trace
-    org.hibernate.SQL: debug
-    org.hibernate.type.descriptor.sql.BasicBinder: trace
+    org:
+      springframework:
+        data:
+          mongodb:
+            core:
+              MongoTemplate: DEBUG
+              MongoTemplate.Query: TRACE
 
 springdoc:
   swagger-ui:
