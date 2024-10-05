@@ -2,6 +2,8 @@ package com.example.location.utils.exception.handler;
 
 import com.example.location.utils.dtos.ErrorResponse;
 import com.example.location.utils.exception.AbstractException;
+import com.example.location.utils.exception.DataNotFoundException;
+import feign.FeignException;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -9,6 +11,7 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
 import java.sql.Timestamp;
+import java.util.List;
 
 @RestControllerAdvice
 public class GlobalExceptionHandler {

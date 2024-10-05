@@ -1,18 +1,12 @@
 package com.example.location;
 
-import com.example.location.api.entities.Region;
-import com.example.location.api.repositories.RegionRepository;
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
-import org.springframework.context.annotation.Bean;
+import org.springframework.cloud.openfeign.EnableFeignClients;
 
-import java.io.InputStream;
-import java.util.List;
 
 @SpringBootApplication
+@EnableFeignClients
 public class LocationApplication {
     public static void main(String[] args) {
         SpringApplication.run(LocationApplication.class, args);

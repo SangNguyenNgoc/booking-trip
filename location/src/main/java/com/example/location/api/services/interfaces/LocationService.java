@@ -1,11 +1,12 @@
 package com.example.location.api.services.interfaces;
 
-import com.example.location.api.dtos.location.LocationCreate;
-import com.example.location.api.dtos.location.LocationInfo;
-import com.example.location.api.dtos.location.LocationName;
-import com.example.location.api.dtos.location.LocationUpdate;
+import com.example.location.api.dtos.location.*;
+import com.example.location.api.entities.Distance;
+import com.example.location.api.entities.Location;
 import com.example.location.utils.dtos.ListResponse;
 import com.example.location.utils.dtos.PageResponse;
+
+import java.util.List;
 
 public interface LocationService {
 
@@ -26,4 +27,11 @@ public interface LocationService {
     LocationInfo updateRegionInLocation(String locationId, String regionSlug);
 
     void toggleActiveLocation(String locationId);
+
+    TripScheduleResponse getTripSchedule(TripScheduleRequest request);
+
+    Distance calculateAndSetDistance(Location from, Location to);
+
+    List<ScheduleInfo> calculateAndSetScheduleInfo(Location to, List<Location> from, boolean inSchedule);
+
 }

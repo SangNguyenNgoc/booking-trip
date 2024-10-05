@@ -19,8 +19,8 @@ public class Location {
     private String address;
     private String hotline;
     private String description;
-    private String latitude;
-    private String longitude;
+    private Double latitude;
+    private Double longitude;
     private Boolean active;
 
     @DBRef

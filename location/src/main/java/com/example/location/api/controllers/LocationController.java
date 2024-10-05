@@ -1,9 +1,6 @@
 package com.example.location.api.controllers;
 
-import com.example.location.api.dtos.location.LocationCreate;
-import com.example.location.api.dtos.location.LocationInfo;
-import com.example.location.api.dtos.location.LocationName;
-import com.example.location.api.dtos.location.LocationUpdate;
+import com.example.location.api.dtos.location.*;
 import com.example.location.api.services.interfaces.LocationService;
 import com.example.location.utils.dtos.ListResponse;
 import com.example.location.utils.dtos.PageResponse;
@@ -71,11 +68,16 @@ public class LocationController {
 
     @PutMapping("/{locationId}/active")
     @PreAuthorize("hasAuthority('SCOPE_ROLE_ADMIN')")
-    public ResponseEntity<Void> toggleActiveLocation(
+    @ResponseStatus(HttpStatus.OK)
+    public void toggleActiveLocation(
             @PathVariable String locationId
     ) {
         locationService.toggleActiveLocation(locationId);
-        return ResponseEntity.status(HttpStatus.OK).build();
+    }
+
+    @GetMapping("/trip")
+    public ResponseEntity<TripScheduleResponse> getTripSchedule(@RequestBody TripScheduleRequest request) {
+        return ResponseEntity.ok(locationService.getTripSchedule(request));
     }
 
 

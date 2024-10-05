@@ -21,8 +21,8 @@ public class LocationInfo implements Serializable {
     private String slug;
     private String hotline;
     private String description;
-    private String latitude;
-    private String longitude;
+    private Double latitude;
+    private Double longitude;
     private Boolean active;
     private RegionInfo region;
 

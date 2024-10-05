@@ -23,4 +23,6 @@ public interface LocationRepository extends MongoRepository<Location, String> {
 
     List<Location> findByRegionSlug(String regionSlug);
 
+    List<Location> findAllBySlugIn(List<String> slugs);
+
 }
