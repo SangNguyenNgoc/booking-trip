@@ -24,7 +24,7 @@
         </processorPath>
         <module name="profile" />
       </profile>
-      <profile name="Annotation profile for auth-server" enabled="true">
+      <profile name="Annotation profile for vehicle" enabled="true">
         <sourceOutputDir name="target/generated-sources/annotations" />
         <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
         <outputRelativeToContentRoot value="true" />
@@ -35,8 +35,8 @@
           <entry name="$MAVEN_REPOSITORY$/org/mapstruct/mapstruct/1.5.5.Final/mapstruct-1.5.5.Final.jar" />
         </processorPath>
         <module name="location" />
-        <module name="auth-server" />
         <module name="vehicle" />
+        <module name="auth-server" />
       </profile>
     </annotationProcessing>
     <bytecodeTargetLevel>
