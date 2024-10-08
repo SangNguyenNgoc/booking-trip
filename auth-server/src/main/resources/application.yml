@@ -63,3 +63,10 @@ management:
     web:
       exposure:
         include: info, health
+
+eureka:
+  instance:
+    hostname: ${EUREKA_HOST}
+  client:
+    service-url:
+      defaultZone: ${EUREKA_DEFAULT_ZONE}

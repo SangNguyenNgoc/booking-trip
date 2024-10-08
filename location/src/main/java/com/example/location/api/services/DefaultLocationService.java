@@ -9,8 +9,8 @@ import com.example.location.api.repositories.RegionRepository;
 import com.example.location.api.services.interfaces.LocationService;
 import com.example.location.api.services.mappers.LocationMapper;
 import com.example.location.config.VariableConfig;
-import com.example.location.utils.clients.GeocodingClient;
-import com.example.location.utils.clients.RoutingClient;
+import com.example.location.clients.GeocodingClient;
+import com.example.location.clients.RoutingClient;
 import com.example.location.utils.dtos.ListResponse;
 import com.example.location.utils.dtos.PageResponse;
 import com.example.location.utils.exception.DataNotFoundException;
@@ -74,6 +74,20 @@ public class DefaultLocationService implements LocationService {
     }
 
     @Override
+    public PageResponse<LocationInfo> getAllLocations() {
+        var locationList = locationRepository.findAll();
+        var locations = ListResponse.<LocationInfo>builder()
+                .size(locationList.size())
+                .data(locationList.stream().map(locationMapper::toDto).collect(Collectors.toList()))
+                .build();
+        return PageResponse.<LocationInfo>builder()
+                .currentPage(1)
+                .totalPage(1)
+                .data(locations)
+                .build();
+    }
+
+    @Override
     public PageResponse<LocationInfo> getALlLocations(Integer pageNo, Integer pageSize) {
         PageRequest page = PageRequest.of(pageNo, pageSize);
         var locationPage = locationRepository.findAll(page);
@@ -105,6 +119,20 @@ public class DefaultLocationService implements LocationService {
     }
 
     @Override
+    public PageResponse<LocationInfo> getLocationByRegion(String region) {
+        var locationList = locationRepository.findAll();
+        var locations = ListResponse.<LocationInfo>builder()
+                .size(locationList.size())
+                .data(locationList.stream().map(locationMapper::toDto).collect(Collectors.toList()))
+                .build();
+        return PageResponse.<LocationInfo>builder()
+                .currentPage(1)
+                .totalPage(1)
+                .data(locations)
+                .build();
+    }
+
+    @Override
     public PageResponse<LocationInfo> getLocationByRegion(String region, Integer pageNo, Integer pageSize) {
         PageRequest page = PageRequest.of(pageNo, pageSize);
         var locationPage = locationRepository.findByRegionId(region, page);
@@ -121,11 +149,19 @@ public class DefaultLocationService implements LocationService {
 
     @Override
     public ListResponse<LocationName> getLocationNames() {
-        var locationNames = locationRepository.getAllLocationNames();
+        var locationNames = locationRepository.findAllLocationNames();
         return ListResponse.<LocationName>builder()
                 .size(locationNames.size())
                 .data(locationNames.stream().map(locationMapper::toName).collect(Collectors.toList()))
                 .build();
+    }
+
+    @Override
+    public LocationName getLocationNameBySlug(String slug) {
+        var location = locationRepository.findBySlug(slug).orElseThrow(
+                () -> new DataNotFoundException(List.of("Location not found"))
+        );
+        return locationMapper.toName(location);
     }
 
     @Override

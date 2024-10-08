@@ -17,7 +17,13 @@ public interface LocationRepository extends MongoRepository<Location, String> {
     Optional<Location> findBySlug(String slug);
 
     @Query(value = "{}", fields = "{'name':  1, 'address':  1, 'slug':  1}")
-    List<Location> getAllLocationNames();
+    List<Location> findAllLocationNames();
+
+    @Query(value = "{slug: ?1}", fields = "{'name':  1, 'address':  1, 'slug':  1}")
+    Optional<Location> findLocationNameBySlug(String slug);
+
+
+    List<Location> findByRegionId(String regionId);
 
     Page<Location> findByRegionId(String regionId, Pageable pageable);
 

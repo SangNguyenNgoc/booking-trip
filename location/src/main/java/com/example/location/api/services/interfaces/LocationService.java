@@ -12,15 +12,21 @@ public interface LocationService {
 
     LocationInfo createLocation(LocationCreate locationCreate);
 
+    PageResponse<LocationInfo> getAllLocations();
+
     PageResponse<LocationInfo> getALlLocations(Integer pageNo, Integer pageSize);
 
     LocationInfo getLocationBySlug(String slug);
+
+    PageResponse<LocationInfo> getLocationByRegion(String region);
 
     PageResponse<LocationInfo> getLocationByRegion(String region, Integer pageNo, Integer pageSize);
 
     LocationInfo getLocationById(String locationId);
 
     ListResponse<LocationName> getLocationNames();
+
+    LocationName getLocationNameBySlug(String slug);
 
     LocationInfo updateLocation(LocationUpdate locationUpdate);
 

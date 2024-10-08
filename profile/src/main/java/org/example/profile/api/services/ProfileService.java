@@ -8,11 +8,11 @@ import org.example.profile.api.dtos.UserDto;
 import org.example.profile.api.entities.Profile;
 import org.example.profile.api.interfaces.ProfileMapper;
 import org.example.profile.api.interfaces.ProfileRepository;
-import org.example.profile.untils.dtos.ListResponse;
-import org.example.profile.untils.exception.AppException;
-import org.example.profile.untils.exception.DataNotFoundException;
-import org.example.profile.untils.exception.InputInvalidException;
-import org.example.profile.untils.services.ObjectsValidator;
+import org.example.profile.utils.dtos.ListResponse;
+import org.example.profile.utils.exception.AppException;
+import org.example.profile.utils.exception.DataNotFoundException;
+import org.example.profile.utils.exception.InputInvalidException;
+import org.example.profile.utils.services.ObjectsValidator;
 import org.springframework.http.HttpStatus;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.security.core.Authentication;
@@ -22,7 +22,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
-import java.util.UUID;
 import java.util.stream.Collectors;
 
 public interface ProfileService {

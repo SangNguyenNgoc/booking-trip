@@ -12,6 +12,7 @@
         <option value="$PROJECT_DIR$/location/pom.xml" />
         <option value="$PROJECT_DIR$/auth-server/pom.xml" />
         <option value="$PROJECT_DIR$/profile/pom.xml" />
+        <option value="$PROJECT_DIR$/vehicle/pom.xml" />
       </list>
     </option>
     <option name="ignoredFiles">

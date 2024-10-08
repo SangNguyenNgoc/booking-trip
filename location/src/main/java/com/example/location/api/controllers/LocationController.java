@@ -26,9 +26,12 @@ public class LocationController {
 
     @GetMapping
     public ResponseEntity<PageResponse<LocationInfo>> getAllLocations(
-            @RequestParam(value = "page") Integer pageNo,
-            @RequestParam(value = "size") Integer pageSize
+            @RequestParam(value = "page", required = false) Integer pageNo,
+            @RequestParam(value = "size", required = false) Integer pageSize
     ) {
+        if (pageNo == null || pageSize == null) {
+            return ResponseEntity.ok(locationService.getAllLocations());
+        }
         return ResponseEntity.ok(locationService.getALlLocations(pageNo - 1, pageSize));
     }
 
@@ -40,15 +43,23 @@ public class LocationController {
     @GetMapping("/region/{regionId}")
     public ResponseEntity<PageResponse<LocationInfo>> getLocationByRegion(
             @PathVariable String regionId,
-            @RequestParam(value = "page") Integer pageNo,
-            @RequestParam(value = "size") Integer pageSize
+            @RequestParam(value = "page", required = false) Integer pageNo,
+            @RequestParam(value = "size", required = false) Integer pageSize
     ) {
+        if (pageNo == null || pageSize == null) {
+            return ResponseEntity.ok(locationService.getLocationByRegion(regionId));
+        }
         return ResponseEntity.ok(locationService.getLocationByRegion(regionId, pageNo - 1, pageSize));
     }
 
     @GetMapping("/names")
     public ResponseEntity<ListResponse<LocationName>> getAllLocationNames() {
         return ResponseEntity.ok(locationService.getLocationNames());
+    }
+
+    @GetMapping("/names/{slug}")
+    public ResponseEntity<LocationName> getAllLocationNames(@PathVariable String slug) {
+        return ResponseEntity.ok(locationService.getLocationNameBySlug(slug));
     }
 
     @PutMapping

@@ -5,7 +5,7 @@ import org.example.profile.api.dtos.ProfileResponse;
 import org.example.profile.api.dtos.RegisterRequest;
 import org.example.profile.api.dtos.UpdateProfileRequest;
 import org.example.profile.api.services.ProfileService;
-import org.example.profile.untils.dtos.ListResponse;
+import org.example.profile.utils.dtos.ListResponse;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;

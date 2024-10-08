@@ -2,7 +2,7 @@ package org.example.profile.api.entities;
 
 import jakarta.persistence.*;
 import lombok.*;
-import org.example.profile.untils.auditing.TimestampEntity;
+import org.example.profile.utils.auditing.TimestampEntity;
 
 @Getter
 @Setter

@@ -15,11 +15,10 @@ server:
 
 eureka:
   instance:
-    hostname: localhost
+    hostname: ${EUREKA_HOST}
   client:
-    register-with-eureka: false
-#    service-url:
-#      defaultZone: ${EUREKA_DEFAULT_ZONE}
+    service-url:
+      defaultZone: ${EUREKA_DEFAULT_ZONE}
 
 logging:
   level:
