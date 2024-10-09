@@ -9,7 +9,7 @@ import java.util.Optional;
 
 @FeignClient(
         name = "locationClient",
-        url = "http://localhost:8082",
+        url = "lb://location",
         configuration = ClientConfig.class
 )
 public interface LocationClient {
