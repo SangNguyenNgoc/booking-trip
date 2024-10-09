@@ -28,8 +28,8 @@ import java.util.Map;
         in = SecuritySchemeIn.HEADER,
         flows = @io.swagger.v3.oas.annotations.security.OAuthFlows(
                 authorizationCode = @io.swagger.v3.oas.annotations.security.OAuthFlow(
-                        authorizationUrl = "https://api.devsphere.id.vn/oauth2/authorize",
-                        tokenUrl = "https://api.devsphere.id.vn/oauth2/token",
+                        authorizationUrl = "https://account.devsphere.id.vn/oauth2/authorize",
+                        tokenUrl = "https://account.devsphere.id.vn/oauth2/token",
                         scopes = {
                                 @OAuthScope(name = "openid", description = "openid"),
                         },
