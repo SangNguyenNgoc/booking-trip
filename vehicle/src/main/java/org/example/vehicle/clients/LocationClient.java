@@ -8,8 +8,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import java.util.Optional;
 
 @FeignClient(
-        name = "locationClient",
-        url = "lb://location",
+        name = "location",
         configuration = ClientConfig.class
 )
 public interface LocationClient {
