@@ -25,7 +25,7 @@ spring:
     oauth2:
       resourceserver:
         jwt:
-          issuer-uri: http://localhost:9000
+          issuer-uri: ${AUTH_URL}
   kafka:
     bootstrap-servers: ${BOOTSTRAP1}
     producer:

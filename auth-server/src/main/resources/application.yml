@@ -41,10 +41,9 @@ spring:
 client:
   client-id: web-client
   redirect-uris:
-    - http://localhost:8080/authorized
-    - http://oauth.pstmn.io/v1/callback
-#    - ${SSL}://${DOMAIN}
-    - http://localhost:${server.port}/swagger-ui/oauth2-redirect.html
+    - ${SSL}://${DOMAIN}/authorized
+    - https://oauth.pstmn.io/v1/callback
+    - ${SSL}://${DOMAIN}/swagger-ui/oauth2-redirect.html
   settings:
     require-authorization-consent: false
     require-proof-key: true

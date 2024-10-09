@@ -9,6 +9,7 @@ import io.swagger.v3.oas.models.OpenAPI;
 import io.swagger.v3.oas.models.info.Contact;
 import io.swagger.v3.oas.models.info.Info;
 import io.swagger.v3.oas.models.servers.Server;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -38,12 +39,15 @@ import java.util.List;
         )
 )
 public class OpenApiConfig {
+    @Value("${url.base-url}")
+    private String appUrl;
+
     @Bean
     public OpenAPI openAPI() {
         return new OpenAPI()
                 .info(new Info()
-                        .title("Vehicle service API")
-                        .description("Vehicle service API")
+                        .title("Location service API")
+                        .description("Location service API")
                         .version("1.0.0")
                         .contact(new Contact()
                                 .email("nngocsang38@gmail.com")
@@ -52,8 +56,8 @@ public class OpenApiConfig {
                         )
                 )
                 .servers(List.of(new Server()
-                        .url("http://localhost:8084")
-                        .description("Localhost"))
+                        .url(appUrl)
+                        .description(appUrl.split("://")[0]))
                 );
     }
 }

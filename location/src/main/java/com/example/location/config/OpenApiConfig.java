@@ -10,6 +10,7 @@ import io.swagger.v3.oas.models.info.Contact;
 import io.swagger.v3.oas.models.info.Info;
 import io.swagger.v3.oas.models.security.*;
 import io.swagger.v3.oas.models.servers.Server;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -27,8 +28,8 @@ import java.util.Map;
         in = SecuritySchemeIn.HEADER,
         flows = @io.swagger.v3.oas.annotations.security.OAuthFlows(
                 authorizationCode = @io.swagger.v3.oas.annotations.security.OAuthFlow(
-                        authorizationUrl = "http://localhost:9000/oauth2/authorize",
-                        tokenUrl = "http://localhost:9000/oauth2/token",
+                        authorizationUrl = "https://api.devsphere.id.vn/oauth2/authorize",
+                        tokenUrl = "https://api.devsphere.id.vn/oauth2/token",
                         scopes = {
                                 @OAuthScope(name = "openid", description = "openid"),
                         },
@@ -41,6 +42,10 @@ import java.util.Map;
         )
 )
 public class OpenApiConfig {
+
+    @Value("${url.base-url}")
+    private String appUrl;
+
     @Bean
     public OpenAPI openAPI() {
         return new OpenAPI()
@@ -55,8 +60,8 @@ public class OpenApiConfig {
                         )
                 )
                 .servers(List.of(new Server()
-                        .url("http://localhost:8082")
-                        .description("Localhost"))
+                        .url(appUrl)
+                        .description(appUrl.split("://")[0]))
                 );
     }
 }

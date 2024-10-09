@@ -8,7 +8,7 @@ spring:
     oauth2:
       resourceserver:
         jwt:
-          issuer-uri: http://localhost:9000
+          issuer-uri: ${AUTH_URL}
 
 server:
   port: 8082
@@ -42,4 +42,7 @@ management:
 
 location:
   api-key: ${API_KEY}
+
+url:
+  base-url: ${SSL}://${DOMAIN}/api/v1
 
