@@ -71,6 +71,9 @@ public class AuthorizationServerConfig {
     @Value("${token.key-size}")
     private Integer keySize;
 
+    @Value("${spring.security.oauth2.authorizationserver.issuer}")
+    private String iss;
+
     @Bean
     public RegisteredClientRepository registeredClientRepository(){
         List<String> redirectUris = Binder.get(environment)
@@ -157,6 +160,8 @@ public class AuthorizationServerConfig {
         return http.build();
     }
 
+
+
     @Bean
     public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
@@ -169,6 +174,7 @@ public class AuthorizationServerConfig {
                 context.getClaims().claims((claims) -> {
                     Set<String> roles = AuthorityUtils.authorityListToSet(context.getPrincipal().getAuthorities());
                     claims.put("scope", roles);
+                    claims.put("iss", iss);
                 });
             }
         };
