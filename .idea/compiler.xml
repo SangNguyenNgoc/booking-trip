@@ -8,7 +8,7 @@
         <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
         <outputRelativeToContentRoot value="true" />
       </profile>
-      <profile name="Annotation profile for profile" enabled="true">
+      <profile name="Annotation profile for location" enabled="true">
         <sourceOutputDir name="target/generated-sources/annotations" />
         <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
         <outputRelativeToContentRoot value="true" />
@@ -22,7 +22,7 @@
           <entry name="$MAVEN_REPOSITORY$/org/mapstruct/mapstruct-processor/1.5.5.Final/mapstruct-processor-1.5.5.Final.jar" />
           <entry name="$MAVEN_REPOSITORY$/org/mapstruct/mapstruct/1.5.5.Final/mapstruct-1.5.5.Final.jar" />
         </processorPath>
-        <module name="profile" />
+        <module name="location" />
       </profile>
       <profile name="Annotation profile for vehicle" enabled="true">
         <sourceOutputDir name="target/generated-sources/annotations" />
@@ -34,12 +34,12 @@
           <entry name="$MAVEN_REPOSITORY$/org/mapstruct/mapstruct-processor/1.5.5.Final/mapstruct-processor-1.5.5.Final.jar" />
           <entry name="$MAVEN_REPOSITORY$/org/mapstruct/mapstruct/1.5.5.Final/mapstruct-1.5.5.Final.jar" />
         </processorPath>
-        <module name="location" />
         <module name="vehicle" />
-        <module name="auth-server" />
+        <module name="profile" />
       </profile>
     </annotationProcessing>
     <bytecodeTargetLevel>
+      <module name="auth-server" target="17" />
       <module name="config-server" target="17" />
       <module name="demo" target="17" />
       <module name="discovery" target="17" />

@@ -1,16 +1,5 @@
 version: "1"
 services:
-  auth-server:
-    environment:
-      TAG: AUTH
-    build: ./auth-server
-    container_name: auth-server
-    restart: on-failure
-    ports:
-      - "9000:9000"
-    env_file:
-      - .env
-
   location:
     environment:
       TAG: location
@@ -21,8 +10,6 @@ services:
       - "8082:8082"
     env_file:
       - .env
-    depends_on:
-      - auth-server
 
   profile:
     environment:
@@ -34,8 +21,6 @@ services:
       - "8083:8083"
     env_file:
       - .env
-    depends_on:
-      - auth-server
 
   vehicle:
     environment:
@@ -47,5 +32,3 @@ services:
       - "8084:8084"
     env_file:
       - .env
-    depends_on:
-      - auth-server
