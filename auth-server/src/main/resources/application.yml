@@ -4,7 +4,7 @@ spring:
   security:
     oauth2:
       authorizationserver:
-        issuer-uri: ${AUTH_URL}
+        issuer: ${AUTH_URL}
   datasource:
     driverClassName: com.mysql.cj.jdbc.Driver
     url: jdbc:mysql://${MYSQL_HOST}:${MYSQL_PORT}/auth
