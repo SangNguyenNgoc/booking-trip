@@ -1,6 +1,10 @@
 server:
   port: 9000
 spring:
+  security:
+    oauth2:
+      authorization:
+        issuer-uri: ${AUTH_URL}
   datasource:
     driverClassName: com.mysql.cj.jdbc.Driver
     url: jdbc:mysql://${MYSQL_HOST}:${MYSQL_PORT}/auth
