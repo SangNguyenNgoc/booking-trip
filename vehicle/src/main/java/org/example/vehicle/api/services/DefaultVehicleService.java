@@ -14,6 +14,7 @@ import org.example.vehicle.api.repositories.VehicleTypeRepository;
 import org.example.vehicle.api.services.interfaces.VehicleService;
 import org.example.vehicle.api.services.mappers.VehicleMapper;
 import org.example.vehicle.clients.LocationClient;
+import org.example.vehicle.config.VariableConfig;
 import org.example.vehicle.utils.dtos.ListResponse;
 import org.example.vehicle.utils.dtos.PageResponse;
 import org.example.vehicle.utils.exception.DataNotFoundException;
@@ -37,6 +38,8 @@ public class DefaultVehicleService implements VehicleService {
 
     VehicleMapper vehicleMapper;
     ObjectsValidator<VehicleCreate> vehicleCreateValidator;
+
+    VariableConfig variableConfig;
 
     @Override
     public List<String> getAllLicensePlate() {
@@ -91,7 +94,10 @@ public class DefaultVehicleService implements VehicleService {
         VehicleType type = vehicleTypeRepository.findById(vehicleCreate.getTypeId()).orElseThrow(
                 () -> new DataNotFoundException(List.of("Vehicle type not found"))
         );
-        var location = locationClient.getLocation(vehicleCreate.getCurrentLocationSlug()).orElseThrow(
+        var location = locationClient.getLocation(
+                vehicleCreate.getCurrentLocationSlug(),
+                variableConfig.LOCATION_API_KEY
+        ).orElseThrow(
                 () -> new DataNotFoundException(List.of("Location not found"))
         );
         Vehicle vehicle = Vehicle.builder()
