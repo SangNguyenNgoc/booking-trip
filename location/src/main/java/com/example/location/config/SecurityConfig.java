@@ -40,9 +40,7 @@ public class SecurityConfig {
                         auth.requestMatchers(endpoint.method(), endpoint.path()).permitAll();
                     }
                     auth.anyRequest().authenticated();
-                })
-                .addFilterBefore(myCorsFilter, ChannelProcessingFilter.class);
-//                .addFilterBefore(internalApiFilter, OncePerRequestFilter.class);
+                });
         httpSecurity.oauth2ResourceServer(resource -> resource.jwt(Customizer.withDefaults()));
         return httpSecurity.build();
     }
