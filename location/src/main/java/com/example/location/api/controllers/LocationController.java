@@ -58,7 +58,7 @@ public class LocationController {
     }
 
     @GetMapping("/names/{slug}")
-    public ResponseEntity<LocationName> getAllLocationNames(@PathVariable String slug) {
+    public ResponseEntity<LocationName> getLocationNameBySlug(@PathVariable String slug) {
         return ResponseEntity.ok(locationService.getLocationNameBySlug(slug));
     }
 
@@ -66,15 +66,6 @@ public class LocationController {
     @PreAuthorize("hasAuthority('SCOPE_ROLE_ADMIN')")
     public ResponseEntity<LocationInfo> updateLocation(@RequestBody LocationUpdate locationUpdate) {
         return ResponseEntity.ok(locationService.updateLocation(locationUpdate));
-    }
-
-    @PutMapping("/{locationId}/region")
-    @PreAuthorize("hasAuthority('SCOPE_ROLE_ADMIN')")
-    public ResponseEntity<LocationInfo> updateLocation(
-            @PathVariable String locationId,
-            @RequestParam(value = "region") String regionSlug
-    ) {
-        return ResponseEntity.ok(locationService.updateRegionInLocation(locationId, regionSlug));
     }
 
     @PutMapping("/{locationId}/active")

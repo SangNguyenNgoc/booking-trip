@@ -2,6 +2,7 @@ package com.example.location.api.dtos.region;
 
 import com.example.location.api.entities.Region;
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
@@ -13,6 +14,7 @@ import java.io.Serializable;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
+@Builder
 public class RegionInfo implements Serializable {
     private String id;
     private String name;

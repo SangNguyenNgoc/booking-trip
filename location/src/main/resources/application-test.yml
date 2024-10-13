@@ -1,0 +1,48 @@
+spring:
+  application:
+    name: location
+  data:
+    mongodb:
+      uri: mongodb+srv://example:example@example/example?retryWrites=true&w=majority&appName=Cluster0
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          issuer-uri: example
+
+server:
+  port: 8082
+
+eureka:
+  instance:
+    hostname: example
+  client:
+    service-url:
+      defaultZone: example
+
+logging:
+  level:
+    org:
+      springframework:
+        data:
+          mongodb:
+            core:
+              MongoTemplate: DEBUG
+              MongoTemplate.Query: TRACE
+
+springdoc:
+  swagger-ui:
+    path: /swagger-ui.html
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: info, health
+
+location:
+  api-key: example
+
+url:
+  base-url: example://example/api/v1
+

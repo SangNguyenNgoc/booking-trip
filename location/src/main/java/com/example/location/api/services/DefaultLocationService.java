@@ -65,7 +65,10 @@ public class DefaultLocationService implements LocationService {
         location.setType("bus_station");
         location.setActive(true);
         location.setRegion(region);
-        var geocodingResult = geocodingClient.getCoordinates(locationCreate.getAddress(), variable.LOCATION_API_KEY).getItems().get(0);
+        var geocodingResult = geocodingClient.getCoordinates(
+                locationCreate.getAddress(),
+                variable.LOCATION_API_KEY
+        ).getItems().get(0);
         location.setLatitude(geocodingResult.getPosition().getLat());
         location.setLongitude(geocodingResult.getPosition().getLng());
 
@@ -120,7 +123,7 @@ public class DefaultLocationService implements LocationService {
 
     @Override
     public PageResponse<LocationInfo> getLocationByRegion(String region) {
-        var locationList = locationRepository.findAll();
+        var locationList = locationRepository.findByRegionId(region);
         var locations = ListResponse.<LocationInfo>builder()
                 .size(locationList.size())
                 .data(locationList.stream().map(locationMapper::toDto).collect(Collectors.toList()))
@@ -182,24 +185,7 @@ public class DefaultLocationService implements LocationService {
             throw new InputInvalidException(List.of("Phone number already exists"));
         }
         var locationUpdated = locationMapper.partialUpdate(locationUpdate, location);
-        locationRepository.save(locationUpdated);
-        return locationMapper.toDto(locationUpdated);
-    }
-
-    @Override
-    @Transactional
-    public LocationInfo updateRegionInLocation(String locationId, String regionSlug) {
-        var location = locationRepository.findById(locationId).orElseThrow(
-                () -> new DataNotFoundException(List.of("Location not found"))
-        );
-        if (!regionSlug.equals(location.getRegion().getSlug())) {
-            var region = regionRepository.findBySlug(regionSlug).orElseThrow(
-                    () -> new DataNotFoundException(List.of("Region not found"))
-            );
-            location.setRegion(region);
-            locationRepository.save(location);
-        }
-        return locationMapper.toDto(location);
+        return locationMapper.toDto(locationRepository.save(locationUpdated));
     }
 
     @Override
@@ -211,11 +197,6 @@ public class DefaultLocationService implements LocationService {
         location.setActive(!location.getActive());
     }
 
-    public Location getBySlug(String slug) {
-        return locationRepository.findBySlug(slug).orElseThrow(
-                () -> new DataNotFoundException(List.of("Location not found"))
-        );
-    }
 
     @Override
     public TripScheduleResponse getTripSchedule(TripScheduleRequest request) {
@@ -231,17 +212,6 @@ public class DefaultLocationService implements LocationService {
         response.setDistance(distance.getDistance());
 
         return response;
-    }
-
-    private TripScheduleResponse buildTripScheduleResponse(Location from, Location to,
-                                                           List<Location> pickUpList, List<Location> transitList) {
-
-        return TripScheduleResponse.builder()
-                .from(locationMapper.toName(from))
-                .to(locationMapper.toName(to))
-                .pickUps(calculateAndSetScheduleInfo(from, pickUpList, false))
-                .transits(calculateAndSetScheduleInfo(from, transitList, true))
-                .build();
     }
 
     @Override
@@ -260,10 +230,6 @@ public class DefaultLocationService implements LocationService {
         }).collect(Collectors.toList());
     }
 
-    private List<Location> getLocationsBySlug(List<String> slugs) {
-        return locationRepository.findAllBySlugIn(slugs);
-    }
-
 
     @Override
     public Distance calculateAndSetDistance(Location from, Location to) {
@@ -272,6 +238,7 @@ public class DefaultLocationService implements LocationService {
                 .orElseGet(() -> calculateAndSetNewDistance(from, to));
 
     }
+
 
     private Distance calculateAndSetNewDistance(Location from, Location to) {
         var route = routingClient.getRoute(
@@ -292,6 +259,30 @@ public class DefaultLocationService implements LocationService {
                 .build();
 
         return distanceRepository.save(newDistance);
+    }
+
+
+    private List<Location> getLocationsBySlug(List<String> slugs) {
+        return locationRepository.findAllBySlugIn(slugs);
+    }
+
+
+    private Location getBySlug(String slug) {
+        return locationRepository.findBySlug(slug).orElseThrow(
+                () -> new DataNotFoundException(List.of("Location not found"))
+        );
+    }
+
+
+    private TripScheduleResponse buildTripScheduleResponse(Location from, Location to,
+                                                           List<Location> pickUpList, List<Location> transitList) {
+
+        return TripScheduleResponse.builder()
+                .from(locationMapper.toName(from))
+                .to(locationMapper.toName(to))
+                .pickUps(calculateAndSetScheduleInfo(from, pickUpList, false))
+                .transits(calculateAndSetScheduleInfo(from, transitList, true))
+                .build();
     }
 
 

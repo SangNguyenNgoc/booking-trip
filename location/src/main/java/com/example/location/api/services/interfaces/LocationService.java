@@ -30,8 +30,6 @@ public interface LocationService {
 
     LocationInfo updateLocation(LocationUpdate locationUpdate);
 
-    LocationInfo updateRegionInLocation(String locationId, String regionSlug);
-
     void toggleActiveLocation(String locationId);
 
     TripScheduleResponse getTripSchedule(TripScheduleRequest request);

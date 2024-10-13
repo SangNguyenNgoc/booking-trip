@@ -6,10 +6,17 @@
     "address": "395 Đ.Kinh Dương Vương, An Lạc, Bình Tân, TPHCM",
     "hotline": "0912345678",
     "description": "ến xe Miền Tây là một trong những bến xe mới của Thành phố Hồ Chí Minh, đã được hình thành từ năm 1975, thuộc quản lý trực tiếp của Cục vận tải đường bộ, Năm 1997 được sửa chửa và nâng cấp và chuyển thành doanh nghiệp nhà nước hoạt động công ích, bến xe lúc này đã được mở rộng quy mô lên 39.000m2 đến năm 2004 bến xe Miền Tây được Chuyển sang Tổng Công ty cơ khí giao thông vận tải Sài Gòn quản lý trực tiếp và tiếp tục mở rộng quy mô lên đến khoảng 47.000m2. Bến xe miền Tây được xây dựng quy mô, khang trang với các trang thiết bị hiện tại, có đầy đủ cơ sở vật chất từ phòng điều hành đến quầy vé, nhà chờ, phòng ăn, khu vực vệ sinh riêng biệt… bến xe luôn có đội ngũ nhân viên vệ sinh dọn dẹp để giữ môi trường sạch sẽ, mới mẽ cho bến. Bãi xe của bến vô cùng rộng và được phân chia khu vực rõ ràng, có bảng chỉ dẫn giúp hành khách có thể dễ dàng tìm kiếm khu vực nhà xe mong muốn. Bên cạnh đó, đội ngũ an ninh của bến xe luôn túc trực để kịp thời hướng dẫn cho hành khách và đảm bảo an toàn nơi bến xe. Bến xe phục vụ các tuyến đi liên tỉnh miền Tây và các các tuyến trình đi miền Trung và miền Bắc khác.",
-    "parentCode": "79",
     "latitude": "10.741231551764892",
     "longitude": "106.61892798224645",
-    "active": true
+    "active": true,
+    "region": {
+      "id": "60eaaa6f1173335842c3565c",
+      "name": "Hồ Chí Minh",
+      "slug": "ho-chi-minh",
+      "type": "thanh-pho",
+      "nameWithType": "Thành phố Hồ Chí Minh",
+      "code": "79"
+    }
   },
   {
     "name": "Bến xe Miền Đông",
@@ -18,9 +25,16 @@
     "address": "292 Đinh Bộ Lĩnh, Phường 26 Bình Thạnh, TPHCM",
     "hotline": "0912345677",
     "description": "Bến xe miền Đông là Bến xe khách lớn nhất và cũng là một trong những Bến xe chính tại TPHCM. Chuyên phục vụ các tuyến xe khách đi và đến các tỉnh miền Bắc, miền Trung, Tây Nguyên và một số tỉnh thuộc Đông Nam Bộ. Từ năm 2020, Bến xe miền Đông mới (501 Hoàng Hữu Nam, Long Bình, Thủ Đức) đã chính thức đi vào hoạt động. Bến xe mới toạ lạc trên địa bàn quận 9, TPHCM và Dĩ An - Bình Dương. Tính đến tháng 10/2022, hơn 100 tuyến xe khách liên tỉnh trên cả nước (trừ tuyến Tây Nguyên) đã chính thức được di dời sang Bến xe miền Đông mới. Với quy mô lớn gấp 3 lần Bến xe miền Đông hiện tại, bến xe mới có thể đáp ứng được tối đa nhu cầu di chuyển của hành khách vào các dịp cao điểm Lễ, Tết.",
-    "parentCode": "79",
     "latitude": "10.814890525234434",
     "longitude": "106.71151472457535",
-    "active": true
+    "active": true,
+    "region": {
+      "id": "60eaaa6f1173335842c3565c",
+      "name": "Hồ Chí Minh",
+      "slug": "ho-chi-minh",
+      "type": "thanh-pho",
+      "nameWithType": "Thành phố Hồ Chí Minh",
+      "code": "79"
+    }
   }
 ]
