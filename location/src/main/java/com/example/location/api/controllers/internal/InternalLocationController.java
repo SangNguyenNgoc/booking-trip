@@ -7,10 +7,7 @@ import com.example.location.api.services.interfaces.LocationService;
 import com.example.location.utils.dtos.ListResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/internal/locations")
@@ -24,8 +21,8 @@ public class InternalLocationController {
         return ResponseEntity.ok(locationService.getTripSchedule(request));
     }
 
-    @GetMapping("/names")
-    public ResponseEntity<ListResponse<LocationName>> getAllLocationNames() {
-        return ResponseEntity.ok(locationService.getLocationNames());
+    @GetMapping("/names/{slug}")
+    public ResponseEntity<LocationName> getLocationNameBySlug(@PathVariable String slug) {
+        return ResponseEntity.ok(locationService.getLocationNameBySlug(slug));
     }
 }
