@@ -14,7 +14,7 @@ public class CustomErrorDecoder implements ErrorDecoder {
         HttpStatus responseStatus = HttpStatus.valueOf(response.status());
 
         if (responseStatus.is4xxClientError()) {
-            return new DataNotFoundException(List.of(response.reason()));
+            return new DataNotFoundException(List.of("Location not found"));
         } else {
             return new Exception("Generic exception");
         }

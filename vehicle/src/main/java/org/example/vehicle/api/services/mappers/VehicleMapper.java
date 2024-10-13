@@ -31,11 +31,20 @@ public interface VehicleMapper {
         }
     }
 
+    @AfterMapping
+    default void setLocationDto(@MappingTarget VehicleDetail vehicleDetail, Vehicle vehicle) {
+        ObjectMapper objectMapper = new ObjectMapper();
+        VehicleDetail.LocationDto locationDto = null;
+        try {
+            if (vehicle.getCurrentLocation() != null) {
+                locationDto = objectMapper.readValue(vehicle.getCurrentLocation(), VehicleDetail.LocationDto.class);
+                vehicleDetail.setNowAt(locationDto);
+            } else {
+                vehicleDetail.setNowAt(null);
+            }
+        } catch (JsonProcessingException e) {
+            throw new RuntimeException(e);
+        }
+    }
 
-    Vehicle toEntity(VehicleCreate vehicleCreate);
-
-    VehicleCreate toDto(Vehicle vehicle);
-
-    @BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
-    Vehicle partialUpdate(VehicleCreate vehicleCreate, @MappingTarget Vehicle vehicle);
 }

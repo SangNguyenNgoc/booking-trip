@@ -4,6 +4,7 @@ import jakarta.persistence.*;
 import jdk.jfr.Enabled;
 import lombok.*;
 import org.example.vehicle.api.entities.enums.MaintainType;
+import org.example.vehicle.utils.auditing.AuditorEntity;
 
 import java.time.LocalDate;
 
@@ -13,7 +14,7 @@ import java.time.LocalDate;
 @NoArgsConstructor
 @AllArgsConstructor
 @Entity(name = "maintain_schedule")
-public class MaintainSchedule {
+public class MaintainSchedule extends AuditorEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id", nullable = false)

@@ -32,6 +32,6 @@ public class RequestLogging {
     @AfterThrowing(pointcut = "controllerMethods()", throwing = "error")
     public void logAfterThrowing(JoinPoint joinPoint, Throwable error) {
         log.error("Request: method: {} threw exception: {}",
-                joinPoint.getSignature().toShortString(), error.getMessage());
+                joinPoint.getSignature().toShortString(), error.getClass().getName());
     }
 }

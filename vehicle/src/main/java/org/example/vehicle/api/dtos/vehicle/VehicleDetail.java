@@ -21,7 +21,7 @@ public class VehicleDetail implements Serializable {
     private String licensePlate;
     private LocalDate manufacturingDate;
     private VehicleStatus status;
-    private String currentLocation;
+    private LocationDto nowAt;
     private VehicleTypeDto type;
     private List<MaintainScheduleDto> maintainSchedules;
 
@@ -67,5 +67,14 @@ public class VehicleDetail implements Serializable {
         private String content;
         private Double cost;
         private MaintainType type;
+    }
+
+    @Data
+    @AllArgsConstructor
+    @NoArgsConstructor
+    public static class LocationDto implements Serializable {
+        private String name;
+        private String address;
+        private String slug;
     }
 }

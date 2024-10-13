@@ -3,6 +3,7 @@ package org.example.vehicle.api.entities;
 import jakarta.persistence.*;
 import lombok.*;
 import org.example.vehicle.api.entities.enums.VehicleStatus;
+import org.example.vehicle.utils.auditing.AuditorEntity;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -13,7 +14,7 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 @Entity(name = "vehicles")
-public class Vehicle {
+public class Vehicle extends AuditorEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id", nullable = false)

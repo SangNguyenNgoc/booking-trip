@@ -2,6 +2,7 @@ package org.example.vehicle.api.entities;
 
 import jakarta.persistence.*;
 import lombok.*;
+import org.example.vehicle.utils.auditing.AuditorEntity;
 
 import java.util.List;
 
@@ -11,7 +12,7 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 @Entity(name = "vehicle_types")
-public class VehicleType {
+public class VehicleType extends AuditorEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id", nullable = false)

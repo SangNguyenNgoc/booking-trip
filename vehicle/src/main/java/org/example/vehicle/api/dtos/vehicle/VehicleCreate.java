@@ -19,7 +19,7 @@ import java.time.LocalDate;
 public class VehicleCreate implements Serializable {
 
     @NotBlank
-    @Pattern(regexp = "^[1-9][0-9][A-Z]-\\d{4,5}$")
+    @Pattern(regexp = "^[1-9][0-9][A-Z]-\\d{3}\\.\\d{2}$", message = "Invalid license plate format")
     private String licensePlate;
 
     @NotNull
