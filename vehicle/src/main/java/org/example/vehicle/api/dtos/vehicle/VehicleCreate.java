@@ -19,7 +19,7 @@ import java.time.LocalDate;
 public class VehicleCreate implements Serializable {
 
     @NotBlank
-    @Pattern(regexp = "^[1-9][0-9][A-Z]-\\d{4,5}$\n")
+    @Pattern(regexp = "^[1-9][0-9][A-Z]-\\d{4,5}$")
     private String licensePlate;
 
     @NotNull
@@ -28,6 +28,6 @@ public class VehicleCreate implements Serializable {
     @NotBlank
     private String currentLocationSlug;
 
-    @NotBlank
+    @NotNull
     private Long typeId;
 }
