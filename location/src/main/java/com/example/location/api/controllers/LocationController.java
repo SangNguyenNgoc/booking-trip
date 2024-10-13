@@ -77,10 +77,5 @@ public class LocationController {
         locationService.toggleActiveLocation(locationId);
     }
 
-    @GetMapping("/trip")
-    public ResponseEntity<TripScheduleResponse> getTripSchedule(@RequestBody TripScheduleRequest request) {
-        return ResponseEntity.ok(locationService.getTripSchedule(request));
-    }
-
 
 }

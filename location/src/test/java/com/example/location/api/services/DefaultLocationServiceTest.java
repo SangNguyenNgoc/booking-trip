@@ -73,7 +73,7 @@ class DefaultLocationServiceTest {
     private ObjectsValidator<LocationCreate> validator = new ObjectsValidator<>();
 
     @Spy
-    private VariableConfig variableConfig = new VariableConfig("api-key");
+    private VariableConfig variableConfig = new VariableConfig("api-key", "example");
 
     @InjectMocks
     private DefaultLocationService locationService;

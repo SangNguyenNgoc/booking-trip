@@ -16,10 +16,9 @@ public class AppEndpoint {
             new EndpointPermission("/locations/region/{regionId}", HttpMethod.GET),
             new EndpointPermission("/locations/names", HttpMethod.GET),
             new EndpointPermission("/locations/names/{slug}", HttpMethod.GET),
-            new EndpointPermission("/locations/trip", HttpMethod.GET),
+            new EndpointPermission("/locations/schedule", HttpMethod.GET),
             new EndpointPermission("/regions", HttpMethod.GET),
             new EndpointPermission("/regions/{slug}", HttpMethod.GET)
-
     );
 
 

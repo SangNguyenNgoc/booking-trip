@@ -29,10 +29,16 @@ logging:
             core:
               MongoTemplate: DEBUG
               MongoTemplate.Query: TRACE
+client:
+  client-id: web-client
 
 springdoc:
   swagger-ui:
     path: /swagger-ui.html
+    oauth:
+      client-id: ${client.client-id}
+      use-pkce-with-authorization-code-grant: true
+    oauth2-redirect-url: ${SWAGGER_DOMAIN}/swagger-ui/oauth2-redirect.html
 
 management:
   endpoints:
@@ -40,9 +46,14 @@ management:
       exposure:
         include: info, health
 
-location:
+url:
+#  base-url: ${SSL}://${DOMAIN}/api/v1
+  base-url: http://localhost:8082
+
+geocoding:
   api-key: ${API_KEY}
 
-url:
-  base-url: ${SSL}://${DOMAIN}/api/v1
+
+internal-api-key:
+  location: ${LOCATION_API_KEY}
 
