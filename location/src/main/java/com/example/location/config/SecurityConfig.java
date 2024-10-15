@@ -25,13 +25,10 @@ import static com.example.location.utils.services.AppEndpoint.PUBLIC_ENDPOINTS;
 @RequiredArgsConstructor
 public class SecurityConfig {
 
-    private final MyCorsFilter myCorsFilter;
-
-    private final InternalApiFilter internalApiFilter;
-
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity httpSecurity) throws Exception {
         httpSecurity
+                .cors(Customizer.withDefaults())
                 .csrf(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests(auth -> {
                     auth.requestMatchers("/swagger-ui/**", "/v3/api-docs/**", "/swagger-ui.html", "/internal/**").permitAll();
