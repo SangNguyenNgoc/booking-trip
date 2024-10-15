@@ -7,6 +7,7 @@ import org.example.vehicle.utils.auditing.AuditorEntity;
 
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Set;
 
 @Getter
 @Setter
@@ -33,6 +34,9 @@ public class Vehicle extends AuditorEntity {
     @Column(name = "current_location", nullable = true, length = 500)
     private String currentLocation;
 
+    @Column(name = "active", nullable = false)
+    private Boolean active;
+
     @ManyToOne(fetch = FetchType.LAZY, cascade = CascadeType.PERSIST)
     @JoinColumn(
             name = "type_id",
@@ -46,6 +50,6 @@ public class Vehicle extends AuditorEntity {
             fetch = FetchType.LAZY,
             cascade = CascadeType.PERSIST
     )
-    private List<MaintainSchedule> maintainSchedules;
+    private Set<MaintainSchedule> maintainSchedules;
 
 }

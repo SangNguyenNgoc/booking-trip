@@ -8,6 +8,7 @@ import org.example.vehicle.api.dtos.vtype.VehicleTypeDetail;
 import org.example.vehicle.api.dtos.vtype.VehicleTypeInfo;
 import org.example.vehicle.api.services.interfaces.VehicleService;
 import org.example.vehicle.utils.dtos.PageResponse;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
@@ -56,5 +57,21 @@ public class VehicleController {
     @GetMapping("/{id}")
     public ResponseEntity<VehicleDetail> getVehicleDetailById(@PathVariable Long id) {
         return ResponseEntity.ok(vehicleService.getVehicleDetailById(id));
+    }
+
+    @PutMapping("/{id}/toggle")
+    @PreAuthorize("hasAuthority('SCOPE_ROLE_ADMIN')")
+    public ResponseEntity<VehicleDetail> toggleVehicleTypeById(@PathVariable(name = "id") Long vehicleId) {
+        return ResponseEntity.ok(vehicleService.toggleVehicle(vehicleId));
+    }
+
+    @PutMapping("/{vehicleId}/trip/{tripId}")
+    @PreAuthorize("hasAnyAuthority('SCOPE_ROLE_ADMIN','SCOPE_ROLE_EMPLOYEE')")
+    @ResponseStatus(HttpStatus.OK)
+    public void assignVehicleToTrip(
+            @PathVariable(name = "vehicleId") Long vehicleId,
+            @PathVariable(name = "tripId") String tripId
+    ) {
+        vehicleService.assignVehicleToTrip(vehicleId, tripId);
     }
 }

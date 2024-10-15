@@ -46,8 +46,8 @@ public class OpenApiConfig {
     public OpenAPI openAPI() {
         return new OpenAPI()
                 .info(new Info()
-                        .title("Location service API")
-                        .description("Location service API")
+                        .title("Vehicle service API")
+                        .description("Vehicle service API")
                         .version("1.0.0")
                         .contact(new Contact()
                                 .email("nngocsang38@gmail.com")

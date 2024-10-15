@@ -21,4 +21,12 @@ public interface VehicleService {
 
     VehicleDetail createVehicle(VehicleCreate vehicleCreate);
 
+    VehicleDetail toggleVehicle(Long id);
+
+    void tripCompletedEvent(Long vehicleId, String locationSlug);
+
+    void tripDepartureEvent(Long vehicleId);
+
+    void assignVehicleToTrip(Long vehicleId, String tripId);
+
 }

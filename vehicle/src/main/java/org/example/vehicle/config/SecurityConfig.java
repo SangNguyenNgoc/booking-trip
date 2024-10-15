@@ -28,6 +28,7 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity httpSecurity) throws Exception {
         httpSecurity
+                .cors(Customizer.withDefaults())
                 .csrf(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests(auth -> {
                     auth.requestMatchers("/swagger-ui/**", "/v3/api-docs/**", "/swagger-ui.html").permitAll();
@@ -35,8 +36,7 @@ public class SecurityConfig {
                         auth.requestMatchers(endpoint.method(), endpoint.path()).permitAll();
                     }
                     auth.anyRequest().permitAll();
-                })
-                .addFilterBefore(myCorsFilter, ChannelProcessingFilter.class);
+                });
         httpSecurity.oauth2ResourceServer(resource -> resource.jwt(Customizer.withDefaults()));
         return httpSecurity.build();
     }

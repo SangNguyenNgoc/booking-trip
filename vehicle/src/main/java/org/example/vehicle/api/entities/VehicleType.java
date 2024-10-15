@@ -5,6 +5,7 @@ import lombok.*;
 import org.example.vehicle.utils.auditing.AuditorEntity;
 
 import java.util.List;
+import java.util.Set;
 
 @Getter
 @Setter
@@ -33,18 +34,24 @@ public class VehicleType extends AuditorEntity {
     @Column(name = "number_of_seats", nullable = false)
     private Integer numberOfSeats;
 
+    @Column(name = "number_of_floors", nullable = false)
+    private Integer numberOfFloors;
+
+    @Column(name = "active", nullable = false)
+    private Boolean active;
+
     @OneToMany(
             mappedBy = "type",
             fetch = FetchType.LAZY,
             cascade = CascadeType.PERSIST
     )
-    private List<Vehicle> vehicles;
+    private Set<Vehicle> vehicles;
 
     @OneToMany(
             mappedBy = "vehicleType",
             fetch = FetchType.LAZY,
             cascade = CascadeType.PERSIST
     )
-    private List<Seat> seats;
+    private Set<Seat> seats;
 
 }

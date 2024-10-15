@@ -49,3 +49,4 @@ url:
 
 internal-api-key:
   location: ${LOCATION_API_KEY}
+  vehicle: ${VEHICLE_API_KEY}

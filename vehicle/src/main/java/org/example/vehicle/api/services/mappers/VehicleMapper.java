@@ -2,10 +2,11 @@ package org.example.vehicle.api.services.mappers;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.example.vehicle.api.dtos.vehicle.VehicleCreate;
+import org.example.vehicle.api.dtos.vtype.VehicleTypeCreate;
 import org.example.vehicle.api.dtos.vehicle.VehicleDetail;
 import org.example.vehicle.api.dtos.vehicle.VehicleInfo;
 import org.example.vehicle.api.entities.Vehicle;
+import org.example.vehicle.api.entities.VehicleType;
 import org.mapstruct.*;
 
 @Mapper(componentModel = "spring")
@@ -47,4 +48,15 @@ public interface VehicleMapper {
         }
     }
 
+    VehicleType toEntity(VehicleTypeCreate vehicleTypeCreate);
+
+    @AfterMapping
+    default void linkSeats(@MappingTarget VehicleType vehicleType) {
+        vehicleType.getSeats().forEach(seat -> seat.setVehicleType(vehicleType));
+    }
+
+    VehicleTypeCreate toDto(VehicleType vehicleType);
+
+    @BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
+    VehicleType partialUpdate(VehicleTypeCreate vehicleTypeCreate, @MappingTarget VehicleType vehicleType);
 }

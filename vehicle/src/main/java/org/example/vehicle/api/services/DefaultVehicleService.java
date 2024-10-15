@@ -18,9 +18,11 @@ import org.example.vehicle.config.VariableConfig;
 import org.example.vehicle.utils.dtos.ListResponse;
 import org.example.vehicle.utils.dtos.PageResponse;
 import org.example.vehicle.utils.exception.DataNotFoundException;
+import org.example.vehicle.utils.exception.InputInvalidException;
 import org.example.vehicle.utils.services.ObjectsValidator;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -43,12 +45,12 @@ public class DefaultVehicleService implements VehicleService {
 
     @Override
     public List<String> getAllLicensePlate() {
-        return vehicleRepository.getAllLicensePlates();
+        return vehicleRepository.findAllLicensePlates();
     }
 
     @Override
     public List<String> getLicensePlateByType(Long typeId) {
-        return vehicleRepository.getAllLicensePlatesByType(typeId);
+        return vehicleRepository.findAllLicensePlatesByType(typeId);
     }
 
     @Override
@@ -91,14 +93,20 @@ public class DefaultVehicleService implements VehicleService {
     @Override
     public VehicleDetail createVehicle(VehicleCreate vehicleCreate) {
         vehicleCreateValidator.validate(vehicleCreate);
+        if (vehicleRepository.existsByLicensePlate(vehicleCreate.getLicensePlate())) {
+            throw new InputInvalidException(List.of("License plate already exist"));
+        }
         VehicleType type = vehicleTypeRepository.findById(vehicleCreate.getTypeId()).orElseThrow(
                 () -> new DataNotFoundException(List.of("Vehicle type not found"))
         );
-        var location = locationClient.getLocation(
-                vehicleCreate.getCurrentLocationSlug(),
-                variableConfig.LOCATION_API_KEY
-        ).orElseThrow(
-                () -> new DataNotFoundException(List.of("Location not found"))
+        var locationOptional = vehicleRepository.findFirstByCurrentLocation(vehicleCreate.getCurrentLocationSlug());
+        var location = locationOptional.orElseGet(
+                () -> locationClient.getLocation(
+                        vehicleCreate.getCurrentLocationSlug(),
+                        variableConfig.LOCATION_API_KEY
+                ).orElseThrow(
+                        () -> new DataNotFoundException(List.of("Location not found"))
+                )
         );
         Vehicle vehicle = Vehicle.builder()
                 .licensePlate(vehicleCreate.getLicensePlate())
@@ -108,5 +116,59 @@ public class DefaultVehicleService implements VehicleService {
                 .status(VehicleStatus.ARRIVED)
                 .build();
         return vehicleMapper.toDetail(vehicleRepository.save(vehicle));
+    }
+
+
+    @Override
+    @Transactional
+    public VehicleDetail toggleVehicle(Long id) {
+        var vehicle = vehicleRepository.findById(id).orElseThrow(
+                () -> new DataNotFoundException(List.of("Vehicle not found"))
+        );
+        var isActive = vehicle.getActive();
+        vehicle.setActive(!isActive);
+        return vehicleMapper.toDetail(vehicle);
+    }
+
+
+    @Override
+    //Consumer kafka
+    public void tripCompletedEvent(Long vehicleId, String locationSlug) {
+        var locationOptional = vehicleRepository.findFirstByCurrentLocation(locationSlug);
+        var location = locationOptional.orElseGet(
+                () -> locationClient.getLocation(
+                        locationSlug,
+                        variableConfig.LOCATION_API_KEY
+                ).orElseThrow(
+                        () -> new DataNotFoundException(List.of("Location not found"))
+                )
+        );
+        var vehicle = vehicleRepository.findById(vehicleId).orElseThrow(
+                () -> new DataNotFoundException(List.of("Vehicle not found"))
+        );
+        vehicle.setStatus(VehicleStatus.ARRIVED);
+        vehicle.setCurrentLocation(location);
+        vehicleRepository.save(vehicle);
+    }
+
+
+    @Override
+    //Consumer kafka
+    public void tripDepartureEvent(Long vehicleId) {
+        var vehicle = vehicleRepository.findById(vehicleId).orElseThrow(
+                () -> new DataNotFoundException(List.of("Vehicle not found"))
+        );
+        vehicle.setStatus(VehicleStatus.ON_ROUTE);
+        vehicle.setCurrentLocation(null);
+        vehicleRepository.save(vehicle);
+    }
+
+
+    @Override
+    public void assignVehicleToTrip(Long vehicleId, String tripId) {
+        var vehicle = vehicleRepository.findById(vehicleId).orElseThrow(
+                () -> new DataNotFoundException(List.of("Vehicle not found"))
+        );
+        //send kafka
     }
 }

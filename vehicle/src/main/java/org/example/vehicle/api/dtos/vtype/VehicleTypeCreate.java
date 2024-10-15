@@ -1,6 +1,9 @@
 package org.example.vehicle.api.dtos.vtype;
 
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
@@ -13,26 +16,38 @@ import java.util.List;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class VehicleTypeDetail implements Serializable {
-    private Long id;
-    private String name;
-    private String description;
-    private Integer numberOfRows;
-    private Integer seatsPerRow;
-    private Boolean active;
-    private List<SeatDto> seats;
+public class VehicleTypeCreate implements Serializable {
 
-    /**
-     * DTO for {@link org.example.vehicle.api.entities.Seat}
-     */
+    @NotBlank
+    private String name;
+
+    @NotBlank
+    private String description;
+
+    @NotNull
+    private Integer numberOfSeats;
+
+    @NotNull
+    private Integer numberOfRows;
+
+    @NotNull
+    private Integer seatsPerRow;
+
+    @NotNull
+    private Integer numberOfFloors;
+
+    private List<EmptySeat> emptySeats;
+
     @Data
-    @AllArgsConstructor
     @NoArgsConstructor
-    public static class SeatDto implements Serializable {
-        private Long id;
-        private Integer rowNo;
-        private Integer colNo;
+    @AllArgsConstructor
+    public static class EmptySeat {
+        @NotNull
         private Integer floorNo;
-        private String name;
+        @NotNull
+        private Integer rowNo;
+        @NotNull
+        private Integer colNo;
     }
+
 }
