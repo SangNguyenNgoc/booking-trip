@@ -8,6 +8,7 @@ import org.example.vehicle.api.entities.enums.VehicleStatus;
 
 import java.io.Serializable;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 
 /**
@@ -22,7 +23,9 @@ public class VehicleDetail implements Serializable {
     private LocalDate manufacturingDate;
     private VehicleStatus status;
     private LocationDto nowAt;
+    private LocalDateTime lastArrivalAt;
     private VehicleTypeDto type;
+    private Boolean active;
     private List<MaintainScheduleDto> maintainSchedules;
 
     /**

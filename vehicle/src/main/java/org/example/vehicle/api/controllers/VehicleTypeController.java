@@ -1,5 +1,7 @@
 package org.example.vehicle.api.controllers;
 
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import lombok.RequiredArgsConstructor;
 import org.example.vehicle.api.dtos.vtype.VehicleTypeCreate;
 import org.example.vehicle.api.dtos.vtype.VehicleTypeDetail;
@@ -19,36 +21,74 @@ public class VehicleTypeController {
 
     private final VehicleTypeService vehicleTypeService;
 
+
+    @Operation(
+            summary = "Get all vehicle type information.",
+            description = "Get all vehicle type information, require 'ROLE_ADMIN'.",
+            security = @SecurityRequirement(name = "Bearer Authentication")
+    )
     @GetMapping
+    @PreAuthorize("hasAnyAuthority('SCOPE_ROLE_ADMIN')")
     public ResponseEntity<ListResponse<VehicleTypeInfo>> getAllVehicleTypes() {
         return ResponseEntity.ok(vehicleTypeService.getAllVehicleTypes());
     }
 
+
+    @Operation(
+            summary = "Get detail information of vehicle type by id.",
+            description = "Get detail information of vehicle type by id, require 'ROLE_ADMIN'.",
+            security = @SecurityRequirement(name = "Bearer Authentication")
+    )
     @GetMapping("/{id}")
+    @PreAuthorize("hasAnyAuthority('SCOPE_ROLE_ADMIN')")
     public ResponseEntity<VehicleTypeDetail> getVehicleTypeById(@PathVariable Long id) {
         return ResponseEntity.ok(vehicleTypeService.getVehicleTypeById(id));
     }
 
+
+    @Operation(
+            summary = "Get all vehicle type are active.",
+            description = "Get all vehicle type are active, require 'ROLE_ADMIN'.",
+            security = @SecurityRequirement(name = "Bearer Authentication")
+    )
     @GetMapping("/active")
     public ResponseEntity<ListResponse<VehicleTypeInfo>> getAllVehicleTypesIsActive() {
         return ResponseEntity.ok(vehicleTypeService.getAllVehicleTypeIsActive());
     }
 
+
+    @Operation(
+            summary = "Toggle active vehicle type by id.",
+            description = "Toggle active vehicle type by id, require 'ROLE_ADMIN'.",
+            security = @SecurityRequirement(name = "Bearer Authentication")
+    )
     @PutMapping("{id}/toggle")
     @PreAuthorize("hasAuthority('SCOPE_ROLE_ADMIN')")
     public ResponseEntity<VehicleTypeDetail> toggleVehicleTypeById(@PathVariable(name = "id") Long typeId) {
         return ResponseEntity.ok(vehicleTypeService.toggleVehicleType(typeId));
     }
 
+
+    @Operation(
+            summary = "Create vehicle type.",
+            description = "Create vehicle type, require 'ROLE_ADMIN'.",
+            security = @SecurityRequirement(name = "Bearer Authentication")
+    )
     @PostMapping
     @PreAuthorize("hasAuthority('SCOPE_ROLE_ADMIN')")
     public ResponseEntity<VehicleTypeDetail> createVehicleType(@RequestBody VehicleTypeCreate vehicleTypeCreate) {
         return ResponseEntity.ok(vehicleTypeService.createVehicleType(vehicleTypeCreate));
     }
 
+
+    @Operation(
+            summary = "Update vehicle type.",
+            description = "Update vehicle type, require 'ROLE_ADMIN'.",
+            security = @SecurityRequirement(name = "Bearer Authentication")
+    )
     @PutMapping
     @PreAuthorize("hasAuthority('SCOPE_ROLE_ADMIN')")
-    public ResponseEntity<VehicleTypeDetail> createVehicleType(@RequestBody VehicleTypeUpdate vehicleTypeUpdate) {
+    public ResponseEntity<VehicleTypeDetail> updateVehicleType(@RequestBody VehicleTypeUpdate vehicleTypeUpdate) {
         return ResponseEntity.ok(vehicleTypeService.updateVehicleType(vehicleTypeUpdate));
     }
 }

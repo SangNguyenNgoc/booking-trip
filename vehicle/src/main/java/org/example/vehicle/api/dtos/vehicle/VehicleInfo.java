@@ -7,6 +7,7 @@ import org.example.vehicle.api.entities.enums.VehicleStatus;
 
 import java.io.Serializable;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 
 /**
  * DTO for {@link org.example.vehicle.api.entities.Vehicle}
@@ -20,6 +21,8 @@ public class VehicleInfo implements Serializable {
     private LocalDate manufacturingDate;
     private VehicleStatus status;
     private LocationDto nowAt;
+    private LocalDateTime lastArrivalAt;
+    private Boolean active;
     private VehicleTypeDto type;
 
     /**

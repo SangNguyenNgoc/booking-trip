@@ -3,6 +3,7 @@ package org.example.vehicle.api.services;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
+import org.example.vehicle.api.dtos.trip.TripCompleted;
 import org.example.vehicle.api.dtos.vehicle.VehicleCreate;
 import org.example.vehicle.api.dtos.vehicle.VehicleDetail;
 import org.example.vehicle.api.dtos.vehicle.VehicleInfo;
@@ -24,8 +25,15 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.List;
+import javax.print.DocFlavor;
+import java.time.Instant;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.util.*;
+import java.util.function.Supplier;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
+
 
 
 @Service
@@ -48,9 +56,50 @@ public class DefaultVehicleService implements VehicleService {
         return vehicleRepository.findAllLicensePlates();
     }
 
+
     @Override
     public List<String> getLicensePlateByType(Long typeId) {
         return vehicleRepository.findAllLicensePlatesByType(typeId);
+    }
+
+    @Override
+    public PageResponse<VehicleInfo> getAllVehiclesByCondition(Long typeId, String status, String currentLocation) {
+        List<Supplier<PageResponse<VehicleInfo>>> conditions = Arrays.asList(
+                () -> (typeId != null && status != null && currentLocation != null) ?
+                        getAllVehiclesByTypeAndStatusAndCurrentLocation(typeId, status, currentLocation) : null,
+                () -> (typeId != null && status != null) ?
+                        getAllVehiclesByTypeAndStatus(typeId, status) : null,
+                () -> (typeId != null) ?
+                        getAllVehiclesByType(typeId) : null,
+                this::getAllVehicles
+        );
+
+        return conditions.stream()
+                .map(Supplier::get)
+                .filter(Objects::nonNull)
+                .findFirst()
+                .orElseThrow(() -> new DataNotFoundException(List.of("No matching condition")));
+    }
+
+    @Override
+    public PageResponse<VehicleInfo> getAllVehiclesByCondition(
+            Long typeId, String status, String currentLocation, Integer pageNo, Integer pageSize
+    ) {
+        List<Supplier<PageResponse<VehicleInfo>>> conditions = Arrays.asList(
+                () -> (typeId != null && status != null && currentLocation != null) ?
+                        getAllVehiclesByTypeAndStatusAndCurrentLocation(typeId, status, currentLocation, pageNo, pageSize) : null,
+                () -> (typeId != null && status != null) ?
+                        getAllVehiclesByTypeAndStatus(typeId, status, pageNo, pageSize) : null,
+                () -> (typeId != null) ?
+                        getAllVehiclesByType(typeId, pageNo, pageSize) : null,
+                () -> getAllVehicles(pageNo, pageSize)
+        );
+
+        return conditions.stream()
+                .map(Supplier::get)
+                .filter(Objects::nonNull)
+                .findFirst()
+                .orElseThrow(() -> new DataNotFoundException(List.of("No matching condition")));
     }
 
     @Override
@@ -67,10 +116,100 @@ public class DefaultVehicleService implements VehicleService {
                 .build();
     }
 
+
     @Override
     public PageResponse<VehicleInfo> getAllVehicles(Integer pageNo, Integer pageSize) {
         PageRequest page = PageRequest.of(pageNo, pageSize);
         var vehicles = vehicleRepository.findAll(page);
+        var vehicleList = ListResponse.<VehicleInfo>builder()
+                .size(vehicles.getSize())
+                .data(vehicles.stream().map(vehicleMapper::toInfo).collect(Collectors.toList()))
+                .build();
+        return PageResponse.<VehicleInfo>builder()
+                .totalPage(vehicles.getTotalPages())
+                .currentPage(pageNo + 1)
+                .data(vehicleList)
+                .build();
+    }
+
+
+    @Override
+    public PageResponse<VehicleInfo> getAllVehiclesByType(Long typeId) {
+        var vehicles = vehicleRepository.findAllByType(typeId);
+        var vehicleList = ListResponse.<VehicleInfo>builder()
+                .size(vehicles.size())
+                .data(vehicles.stream().map(vehicleMapper::toInfo).collect(Collectors.toList()))
+                .build();
+        return PageResponse.<VehicleInfo>builder()
+                .totalPage(1)
+                .currentPage(1)
+                .data(vehicleList)
+                .build();
+    }
+
+
+    @Override
+    public PageResponse<VehicleInfo> getAllVehiclesByType(Long typeId, Integer pageNo, Integer pageSize) {
+        PageRequest page = PageRequest.of(pageNo, pageSize);
+        var vehicles = vehicleRepository.findAllByType(typeId, page);
+        var vehicleList = ListResponse.<VehicleInfo>builder()
+                .size(vehicles.getSize())
+                .data(vehicles.stream().map(vehicleMapper::toInfo).collect(Collectors.toList()))
+                .build();
+        return PageResponse.<VehicleInfo>builder()
+                .totalPage(vehicles.getTotalPages())
+                .currentPage(pageNo + 1)
+                .data(vehicleList)
+                .build();
+    }
+
+    @Override
+    public PageResponse<VehicleInfo> getAllVehiclesByTypeAndStatus(Long typeId, String status) {
+        var vehicles = vehicleRepository.findAllByTypeAndStatus(typeId, VehicleStatus.getVehicleStatus(status));
+        var vehicleList = ListResponse.<VehicleInfo>builder()
+                .size(vehicles.size())
+                .data(vehicles.stream().map(vehicleMapper::toInfo).collect(Collectors.toList()))
+                .build();
+        return PageResponse.<VehicleInfo>builder()
+                .totalPage(1)
+                .currentPage(1)
+                .data(vehicleList)
+                .build();
+    }
+
+    @Override
+    public PageResponse<VehicleInfo> getAllVehiclesByTypeAndStatus(Long typeId, String status, Integer pageNo, Integer pageSize) {
+        PageRequest page = PageRequest.of(pageNo, pageSize);
+        var vehicles = vehicleRepository.findAllByTypeAndStatus(typeId,VehicleStatus.getVehicleStatus(status), page);
+        var vehicleList = ListResponse.<VehicleInfo>builder()
+                .size(vehicles.getSize())
+                .data(vehicles.stream().map(vehicleMapper::toInfo).collect(Collectors.toList()))
+                .build();
+        return PageResponse.<VehicleInfo>builder()
+                .totalPage(vehicles.getTotalPages())
+                .currentPage(pageNo + 1)
+                .data(vehicleList)
+                .build();
+    }
+
+    @Override
+    public PageResponse<VehicleInfo> getAllVehiclesByTypeAndStatusAndCurrentLocation(Long typeId, String status, String currentLocation) {
+        var vehicles = vehicleRepository.findAllByTypeAndStatusAndCurrentLocation(typeId, VehicleStatus.getVehicleStatus(status), currentLocation);
+        var vehicleList = ListResponse.<VehicleInfo>builder()
+                .size(vehicles.size())
+                .data(vehicles.stream().map(vehicleMapper::toInfo).collect(Collectors.toList()))
+                .build();
+        return PageResponse.<VehicleInfo>builder()
+                .totalPage(1)
+                .currentPage(1)
+                .data(vehicleList)
+                .build();
+    }
+
+    @Override
+    public PageResponse<VehicleInfo> getAllVehiclesByTypeAndStatusAndCurrentLocation(Long typeId, String status, String currentLocation, Integer pageNo, Integer pageSize) {
+        PageRequest page = PageRequest.of(pageNo, pageSize);
+        var vehicles = vehicleRepository.findAllByTypeAndStatusAndCurrentLocation(typeId, VehicleStatus.getVehicleStatus(status), currentLocation, page);
         var vehicleList = ListResponse.<VehicleInfo>builder()
                 .size(vehicles.getSize())
                 .data(vehicles.stream().map(vehicleMapper::toInfo).collect(Collectors.toList()))
@@ -133,29 +272,34 @@ public class DefaultVehicleService implements VehicleService {
 
     @Override
     //Consumer kafka
-    public void tripCompletedEvent(Long vehicleId, String locationSlug) {
-        var locationOptional = vehicleRepository.findFirstByCurrentLocation(locationSlug);
+    public void handleTripCompletedEvent(TripCompleted tripCompleted) {
+        var locationOptional = vehicleRepository.findFirstByCurrentLocation(tripCompleted.getLocationSlug());
         var location = locationOptional.orElseGet(
                 () -> locationClient.getLocation(
-                        locationSlug,
+                        tripCompleted.getLocationSlug(),
                         variableConfig.LOCATION_API_KEY
                 ).orElseThrow(
                         () -> new DataNotFoundException(List.of("Location not found"))
                 )
         );
-        var vehicle = vehicleRepository.findById(vehicleId).orElseThrow(
+        var vehicle = vehicleRepository.findByIdAndActiveTrue(tripCompleted.getVehicleId()).orElseThrow(
                 () -> new DataNotFoundException(List.of("Vehicle not found"))
         );
         vehicle.setStatus(VehicleStatus.ARRIVED);
         vehicle.setCurrentLocation(location);
+        LocalDateTime dateTime = LocalDateTime.ofInstant(
+                Instant.ofEpochMilli(tripCompleted.getArrivalTime()),
+                ZoneId.of("Asia/Ho_Chi_Minh")
+        );
+        vehicle.setLastArrivalAt(dateTime);
         vehicleRepository.save(vehicle);
     }
 
 
     @Override
     //Consumer kafka
-    public void tripDepartureEvent(Long vehicleId) {
-        var vehicle = vehicleRepository.findById(vehicleId).orElseThrow(
+    public void handleTripDepartureEvent(Long vehicleId) {
+        var vehicle = vehicleRepository.findByIdAndActiveTrue(vehicleId).orElseThrow(
                 () -> new DataNotFoundException(List.of("Vehicle not found"))
         );
         vehicle.setStatus(VehicleStatus.ON_ROUTE);
@@ -163,12 +307,4 @@ public class DefaultVehicleService implements VehicleService {
         vehicleRepository.save(vehicle);
     }
 
-
-    @Override
-    public void assignVehicleToTrip(Long vehicleId, String tripId) {
-        var vehicle = vehicleRepository.findById(vehicleId).orElseThrow(
-                () -> new DataNotFoundException(List.of("Vehicle not found"))
-        );
-        //send kafka
-    }
 }

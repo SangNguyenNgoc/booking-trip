@@ -6,6 +6,7 @@ import org.example.vehicle.api.entities.enums.VehicleStatus;
 import org.example.vehicle.utils.auditing.AuditorEntity;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Set;
 
@@ -33,6 +34,9 @@ public class Vehicle extends AuditorEntity {
 
     @Column(name = "current_location", nullable = true, length = 500)
     private String currentLocation;
+
+    @Column(name = "last_arrival_at")
+    private LocalDateTime lastArrivalAt;
 
     @Column(name = "active", nullable = false)
     private Boolean active;
