@@ -1,17 +1,23 @@
 spring:
   application:
-    name: location
+      name: trip
   data:
     mongodb:
-      uri: mongodb+srv://${LOCATION_DB_USER}:${LOCATION_DB_PASSWORD}@${LOCATION_DB_HOST}/resource-trip?retryWrites=true&w=majority&appName=Cluster0
+      uri: mongodb+srv://${LOCATION_DB_USER}:${LOCATION_DB_PASSWORD}@${LOCATION_DB_HOST}/trip?retryWrites=true&w=majority&appName=Cluster0
   security:
     oauth2:
       resourceserver:
         jwt:
           issuer-uri: ${AUTH_URL}
+  redis:
+    host: ${REDIS_HOST}
+    port: ${REDIS_PORT}
+    sentinel:
+      username: ${REDIS_USERNAME}
+      password: ${REDIS_PASSWORD}
 
 server:
-  port: 8082
+  port: 8085
 
 eureka:
   instance:
@@ -48,12 +54,8 @@ management:
 
 url:
   base-url: ${SSL}://${DOMAIN}/api/v1
-#  base-url: http://localhost:8082
-
-geocoding:
-  api-key: ${API_KEY}
-
 
 internal-api-key:
+  trip: ${TRIP_API_KEY}
   location: ${LOCATION_API_KEY}
-
+  vehicle: ${VEHICLE_API_KEY}
