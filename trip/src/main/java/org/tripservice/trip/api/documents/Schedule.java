@@ -4,11 +4,9 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import org.springframework.data.mongodb.core.mapping.DBRef;
 import org.springframework.data.mongodb.core.mapping.Document;
-import org.tripservice.trip.api.dtos.location.LocationName;
-import org.tripservice.trip.api.dtos.location.RegionInfo;
-import org.tripservice.trip.api.dtos.schedule.ScheduleItemInfo;
+import org.tripservice.trip.api.dtos.schedule.LocationName;
+import org.tripservice.trip.api.dtos.schedule.ScheduleInfo;
 
 import java.util.List;
 
@@ -19,12 +17,10 @@ import java.util.List;
 @Document(collection = "schedules")
 public class Schedule {
     private String id;
-    private RegionInfo regionFrom;
-    private RegionInfo regionTo;
     private LocationName from;
     private LocationName to;
-    private List<ScheduleItemInfo> pickUps;
-    private List<ScheduleItemInfo> transits;
+    private List<ScheduleInfo> pickUps;
+    private List<ScheduleInfo> transits;
     private Double duration;
     private Double distance;
 }

@@ -15,20 +15,6 @@ spring:
     sentinel:
       username: ${REDIS_USERNAME}
       password: ${REDIS_PASSWORD}
-  kafka:
-    bootstrap-servers: ${BOOTSTRAP1}
-    producer:
-      value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
-      acks: -1
-      retries: 3
-      properties:
-        enable.idempotence: true
-        request.timeout.ms: 30000
-        max.in.flight.requests.per.connection: 5
-    consumer:
-      group-id: trip-consumer-group
-      auto-offset-reset: earliest
-      value-deserializer: org.apache.kafka.common.serialization.ByteArrayDeserializer
 
 server:
   port: 8085

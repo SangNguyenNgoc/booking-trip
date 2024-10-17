@@ -12,8 +12,7 @@ import org.springframework.stereotype.Component;
 public class RequestLogging {
 
     @Pointcut("within(@org.springframework.web.bind.annotation.RestController *)")
-    public void controllerMethods() {
-    }
+    public void controllerMethods() {}
 
     @Async
     @Before("controllerMethods()")

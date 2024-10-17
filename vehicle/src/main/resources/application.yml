@@ -29,22 +29,6 @@ spring:
         dialect: org.hibernate.dialect.MySQL8Dialect
         jdbc:
           batch_size: 50
-  kafka:
-    bootstrap-servers: ${BOOTSTRAP1}
-    producer:
-      value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
-      acks: -1
-      retries: 3
-      properties:
-        enable.idempotence: true
-        request.timeout.ms: 30000
-        max.in.flight.requests.per.connection: 5
-    consumer:
-      group-id: vehicle-consumer-group
-      auto-offset-reset: earliest
-      value-deserializer: org.apache.kafka.common.serialization.ByteArrayDeserializer
-
-
   cloud:
     openfeign:
       client:
