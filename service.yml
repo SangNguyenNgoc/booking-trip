@@ -32,3 +32,14 @@ services:
       - "8084:8084"
     env_file:
       - .env
+
+  trip:
+    environment:
+      TAG: trip
+    build: ./trip
+    container_name: trip
+    restart: on-failure
+    ports:
+      - "8085:8085"
+    env_file:
+      - .env

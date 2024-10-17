@@ -29,6 +29,12 @@ spring:
         dialect: org.hibernate.dialect.MySQL8Dialect
         jdbc:
           batch_size: 50
+  cloud:
+    openfeign:
+      client:
+        config:
+          default:
+            loggerLevel: BASIC
 
 eureka:
   instance:
@@ -50,3 +56,4 @@ url:
 internal-api-key:
   location: ${LOCATION_API_KEY}
   vehicle: ${VEHICLE_API_KEY}
+
