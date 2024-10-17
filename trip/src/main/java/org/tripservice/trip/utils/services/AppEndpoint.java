@@ -9,7 +9,8 @@ public class AppEndpoint {
 
     public record EndpointPermission(String path, HttpMethod method) {}
 
-    public static final List<EndpointPermission> PUBLIC_ENDPOINTS = Arrays.asList(
+    public static final List<EndpointPermission> PUBLIC_ENDPOINTS = List.of(
+            new EndpointPermission("/schedules", HttpMethod.GET)
     );
 
 
