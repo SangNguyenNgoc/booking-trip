@@ -200,8 +200,8 @@ public class DefaultLocationService implements LocationService {
 
     @Override
     public TripScheduleResponse getTripSchedule(TripScheduleRequest request) {
-        var from = getBySlug(request.getFrom());
-        var to = getBySlug(request.getTo());
+        var from = getBusStationBySlug(request.getFrom());
+        var to = getBusStationBySlug(request.getTo());
         var pickUpList = getLocationsBySlug(request.getPickUps());
         var transitList = getLocationsBySlug(request.getTransits());
 
@@ -246,7 +246,7 @@ public class DefaultLocationService implements LocationService {
                 from.getLatitude() + "," + from.getLongitude(),
                 to.getLatitude() + "," + to.getLongitude(),
                 "summary",
-                variable.LOCATION_API_KEY
+                variable.GEOCODING_API_KEY
         );
 
         var section = route.getRoutes().get(0).getSections().get(0).getSummary();
@@ -267,8 +267,8 @@ public class DefaultLocationService implements LocationService {
     }
 
 
-    private Location getBySlug(String slug) {
-        return locationRepository.findBySlug(slug).orElseThrow(
+    private Location getBusStationBySlug(String slug) {
+        return locationRepository.findBySlugAndType(slug, "bus_station").orElseThrow(
                 () -> new DataNotFoundException(List.of("Location not found"))
         );
     }

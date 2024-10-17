@@ -16,6 +16,8 @@ public interface LocationRepository extends MongoRepository<Location, String> {
 
     Optional<Location> findBySlug(String slug);
 
+    Optional<Location> findBySlugAndType(String slug, String type);
+
     @Query(value = "{}", fields = "{'name':  1, 'address':  1, 'slug':  1}")
     List<Location> findAllLocationNames();
 

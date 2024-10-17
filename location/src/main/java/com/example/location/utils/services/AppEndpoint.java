@@ -1,6 +1,5 @@
 package com.example.location.utils.services;
 
-import lombok.Getter;
 import org.springframework.http.HttpMethod;
 
 import java.util.Arrays;
@@ -18,7 +17,9 @@ public class AppEndpoint {
             new EndpointPermission("/locations/names/{slug}", HttpMethod.GET),
             new EndpointPermission("/locations/schedule", HttpMethod.GET),
             new EndpointPermission("/regions", HttpMethod.GET),
-            new EndpointPermission("/regions/{slug}", HttpMethod.GET)
+            new EndpointPermission("/regions/{slug}", HttpMethod.GET),
+            new EndpointPermission("/internal/locations/names/{slug}", HttpMethod.GET),
+            new EndpointPermission("/internal/locations/schedule", HttpMethod.POST)
     );
 
 

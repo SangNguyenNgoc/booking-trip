@@ -16,7 +16,7 @@ public class InternalLocationController {
 
     private final LocationService locationService;
 
-    @GetMapping("/schedule")
+    @PostMapping("/schedule")
     public ResponseEntity<TripScheduleResponse> getTripSchedule(@RequestBody TripScheduleRequest request) {
         return ResponseEntity.ok(locationService.getTripSchedule(request));
     }
