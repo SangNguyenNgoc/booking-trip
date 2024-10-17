@@ -1,6 +1,7 @@
 package org.tripservice.trip.utils.exception.handler;
 
 
+import lombok.extern.log4j.Log4j2;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -11,11 +12,13 @@ import org.tripservice.trip.utils.exception.AbstractException;
 
 import java.sql.Timestamp;
 
+@Log4j2
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 
     @ExceptionHandler(AbstractException.class)
     public ResponseEntity<ErrorResponse> handleException(final AbstractException exception) {
+        log.error("Message error: {}", exception.getMessages().get(0));
         return buildResponse(exception);
     }
 

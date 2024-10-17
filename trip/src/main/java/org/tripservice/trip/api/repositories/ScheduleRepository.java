@@ -8,7 +8,7 @@ import java.util.List;
 
 public interface ScheduleRepository extends MongoRepository<Schedule, String> {
 
-    @Query(fields = "{from.slug: ?1, to.slug:  ?2}")
+    @Query("{'from.slug': ?0, 'to.slug': ?1}")
     List<Schedule> findByFromAndTo(String from, String to);
 
     @Override
