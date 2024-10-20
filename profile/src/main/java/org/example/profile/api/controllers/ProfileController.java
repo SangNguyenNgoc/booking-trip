@@ -18,8 +18,14 @@ import org.springframework.web.bind.annotation.*;
 public class ProfileController {
     private final ProfileService profileService;
 
-    @PostMapping
+    @PostMapping("/register")
     public ResponseEntity<String> register(@RequestBody RegisterRequest registerRequest) {
+        return ResponseEntity.ok(profileService.register(registerRequest));
+    }
+
+    @PostMapping("/register/employee")
+    @PreAuthorize("hasAuthority('SCOPE_ROLE_ADMIN')")
+    public ResponseEntity<String> registerEmployee(@RequestBody RegisterRequest registerRequest) {
         return ResponseEntity.ok(profileService.register(registerRequest));
     }
 
