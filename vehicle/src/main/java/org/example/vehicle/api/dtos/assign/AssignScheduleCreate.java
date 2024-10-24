@@ -16,5 +16,5 @@ public class AssignScheduleCreate {
     private LocalDate startDate;
     private LocalDate endDate;
     private String route;
-    private String licensePlate;
+    private Long vehicleId;
 }

@@ -14,9 +14,7 @@ import java.util.List;
 @AllArgsConstructor
 public class TripCreate {
     private String scheduleId;
-    private String contraryScheduleId;
     private List<String> vehicles;
-    private Long vehicleTypeId;
     private LocalDate startDate;
     private LocalDate endDate;
 }

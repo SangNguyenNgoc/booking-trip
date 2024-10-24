@@ -4,6 +4,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.tripservice.trip.api.documents.Schedule;
 
 import java.time.LocalDateTime;
 
@@ -16,7 +17,4 @@ public class TripInfo {
     private LocalDateTime startTime;
     private LocalDateTime endTime;
     private Integer seatsAvailable;
-    private Long price;
-    private String vehicleTypeName;
-
 }

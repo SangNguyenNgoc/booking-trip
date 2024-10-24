@@ -6,6 +6,7 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.tripservice.trip.api.dtos.schedule.ScheduleDetail;
+import org.tripservice.trip.api.dtos.schedule.ScheduleResponse;
 
 import java.io.Serializable;
 import java.time.LocalDateTime;
@@ -21,8 +22,6 @@ public class TripDetail {
     private LocalDateTime endTime;
     private Integer seatsAvailable;
     private String licensePlate;
-    private Long price;
-    private String vehicleTypeName;
 
     @JsonInclude(JsonInclude.Include.NON_NULL)
     private List<SeatDto> seats;

@@ -10,7 +10,6 @@ import org.example.vehicle.api.repositories.VehicleRepository;
 import org.example.vehicle.api.services.interfaces.AssignScheduleService;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
@@ -24,18 +23,17 @@ public class DefaultAssignScheduleService implements AssignScheduleService {
 
     @Override
     @KafkaListener(topics = "vehiclesAreAssigned")
-    @Transactional
     public void creatAssignSchedule(List<AssignScheduleCreate> assignScheduleCreates) {
-        var licensePlate = assignScheduleCreates.stream()
-                .map(AssignScheduleCreate::getLicensePlate)
+        var vehicleIds = assignScheduleCreates.stream()
+                .map(AssignScheduleCreate::getVehicleId)
                 .toList();
-        var vehicles = vehicleRepository.findAllByLicensePlateIn(licensePlate);
+        var vehicles = vehicleRepository.findAllById(vehicleIds);
         var assignSchedules = assignScheduleCreates.stream()
                 .map(item -> AssignSchedule.builder()
                         .startDate(item.getStartDate())
                         .endDate(item.getEndDate())
                         .route(item.getRoute())
-                        .vehicle(vehicles.stream().filter(v -> v.getLicensePlate().equals(item.getLicensePlate())).findFirst().orElse(null))
+                        .vehicle(vehicles.stream().filter(v -> v.getId().equals(item.getVehicleId())).findFirst().orElse(null))
                         .build())
                 .toList();
         assignScheduleRepository.saveAll(assignSchedules);

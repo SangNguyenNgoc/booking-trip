@@ -23,6 +23,7 @@ public class ScheduleResponse {
     private LocationName to;
     private Double duration;
     private Double distance;
+    private Long price;
 
     @JsonInclude(JsonInclude.Include.NON_NULL)
     private List<TripInfo> trips;

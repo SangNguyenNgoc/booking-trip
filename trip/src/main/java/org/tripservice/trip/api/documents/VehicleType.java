@@ -19,7 +19,6 @@ public class VehicleType implements Serializable {
     private Integer numberOfRows;
     private Integer seatsPerRow;
     private Boolean active;
-    private Long price;
     private List<Seat> seats;
 
 

@@ -5,20 +5,21 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.tripservice.trip.api.documents.Schedule;
-import org.tripservice.trip.api.dtos.schedule.TripScheduleRequest;
+import org.tripservice.trip.api.dtos.schedule.ScheduleRequest;
 import org.tripservice.trip.config.ClientConfig;
 
 import java.util.Optional;
 
 @FeignClient(
         name = "location",
+        url = "http://localhost:8082",
         configuration = ClientConfig.class
 )
 public interface LocationClient {
 
     @GetMapping("/internal/locations/schedule")
     Optional<Schedule> getTripSchedule(
-            @RequestBody TripScheduleRequest request,
+            @RequestBody ScheduleRequest request,
             @RequestHeader("X-API-KEY") String apiKey
     );
 
