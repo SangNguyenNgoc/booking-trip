@@ -6,7 +6,6 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.tripservice.trip.api.dtos.schedule.ScheduleDetail;
-import org.tripservice.trip.api.dtos.schedule.ScheduleResponse;
 
 import java.io.Serializable;
 import java.time.LocalDateTime;

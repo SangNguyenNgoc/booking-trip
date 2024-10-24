@@ -10,7 +10,6 @@ import org.tripservice.trip.api.dtos.schedule.ScheduleResponse;
 import org.tripservice.trip.api.dtos.trip.TripCreate;
 import org.tripservice.trip.api.dtos.trip.TripDetail;
 import org.tripservice.trip.api.dtos.trip.TripInfo;
-import org.tripservice.trip.api.services.interfaces.ScheduleService;
 import org.tripservice.trip.api.services.interfaces.TripService;
 import org.tripservice.trip.utils.dtos.ListResponse;
 
