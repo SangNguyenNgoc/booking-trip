@@ -20,6 +20,7 @@ public class VehicleTypeDetail implements Serializable {
     private Integer numberOfRows;
     private Integer seatsPerRow;
     private Boolean active;
+    private Long price;
     private List<SeatDto> seats;
 
     /**

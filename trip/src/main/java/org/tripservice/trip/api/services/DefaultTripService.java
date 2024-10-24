@@ -4,21 +4,28 @@ import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import org.springframework.data.domain.Sort;
+import org.springframework.kafka.annotation.KafkaListener;
+import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.tripservice.trip.api.documents.Schedule;
 import org.tripservice.trip.api.documents.Trip;
 import org.tripservice.trip.api.documents.VehicleType;
+import org.tripservice.trip.api.dtos.booking.BookingEvent;
+import org.tripservice.trip.api.dtos.schedule.AssignSchedule;
 import org.tripservice.trip.api.dtos.schedule.ScheduleResponse;
 import org.tripservice.trip.api.dtos.trip.TripCreate;
 import org.tripservice.trip.api.dtos.trip.TripDetail;
 import org.tripservice.trip.api.dtos.trip.TripInfo;
 import org.tripservice.trip.api.repositories.ScheduleRepository;
 import org.tripservice.trip.api.repositories.TripRepository;
+import org.tripservice.trip.api.repositories.VehicleTypeRepository;
 import org.tripservice.trip.api.services.interfaces.TripService;
 import org.tripservice.trip.api.services.mappers.ScheduleMapper;
 import org.tripservice.trip.api.services.mappers.TripMapper;
 import org.tripservice.trip.utils.dtos.ListResponse;
 import org.tripservice.trip.utils.exception.DataNotFoundException;
+import org.tripservice.trip.utils.exception.InputInvalidException;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -34,28 +41,77 @@ public class DefaultTripService implements TripService {
 
     TripRepository tripRepository;
     ScheduleRepository scheduleRepository;
+    VehicleTypeRepository vehicleTypeRepository;
 
     TripMapper tripMapper;
     ScheduleMapper scheduleMapper;
 
+    KafkaTemplate<String, Object> kafkaTemplate;
+
     @Override
     public List<TripInfo> createTrip(TripCreate tripCreate) {
-        var schedule = scheduleRepository.findById(tripCreate.getScheduleId()).orElseThrow(
-                () -> new DataNotFoundException(List.of("Schedule not found"))
-        );
+        validateVehicleAvailability(tripCreate);
+
+        Schedule schedule = getScheduleById(tripCreate.getScheduleId());
+        Schedule contrarySchedule = getScheduleById(tripCreate.getContraryScheduleId());
+        VehicleType vehicleType = getVehicleTypeById(tripCreate.getVehicleTypeId());
+
         LocalDateTime start = LocalDateTime.of(tripCreate.getStartDate(), LocalTime.of(6, 0));
         LocalDateTime end = LocalDateTime.of(tripCreate.getEndDate(), LocalTime.of(23, 0));
-        List<Trip> tripList = scheduleTrips(
-                schedule, tripCreate.getVehicles(),
-                start, end
-        );
+
+        List<Trip> availableTrips = tripRepository.findAllByStartTimeBeforeAndStartTimeAfter(tripCreate.getStartDate(), tripCreate.getEndDate());
+
+        List<Trip> tripList = scheduleTrips(schedule, contrarySchedule, vehicleType, availableTrips,
+                tripCreate.getVehicles(), start, end);
+
         tripRepository.saveAll(tripList);
-        return tripList.stream().map(tripMapper::toInfo).collect(Collectors.toList());
+        notifyVehicleAssignment(tripCreate, start, end, schedule);
+
+        return tripList.stream()
+                .map(tripMapper::toInfo)
+                .collect(Collectors.toList());
+    }
+
+
+    private void validateVehicleAvailability(TripCreate tripCreate) {
+        var licensePlateList = tripRepository.checkVehicleInTime(
+                tripCreate.getVehicles(), tripCreate.getStartDate(), tripCreate.getEndDate()
+        );
+        if (!licensePlateList.isEmpty()) {
+            throw new InputInvalidException(List.of("Vehicle is unavailable in this time"));
+        }
+    }
+
+    private Trip getTripById(String tripId) {
+        return tripRepository.findById(tripId)
+                .orElseThrow(() -> new DataNotFoundException(List.of("Trip not found")));
+    }
+
+    private Schedule getScheduleById(String scheduleId) {
+        return scheduleRepository.findById(scheduleId)
+                .orElseThrow(() -> new DataNotFoundException(List.of("Schedule not found")));
+    }
+
+
+    private VehicleType getVehicleTypeById(Long vehicleTypeId) {
+        return vehicleTypeRepository.findById(vehicleTypeId)
+                .orElseThrow(() -> new DataNotFoundException(List.of("Vehicle type not found")));
+    }
+
+
+    private void notifyVehicleAssignment(TripCreate tripCreate, LocalDateTime start, LocalDateTime end, Schedule schedule) {
+        String route = schedule.getRegionFrom().getName() + " - " + schedule.getRegionTo().getName();
+        kafkaTemplate.send("vehiclesAreAssigned", createAssignSchedule(
+                tripCreate.getVehicles(), start.toLocalDate(), end.toLocalDate(), route
+        ));
     }
 
 
     @Override
-    public List<Trip> scheduleTrips(Schedule schedule, List<String> vehicles, LocalDateTime start, LocalDateTime end) {
+    public List<Trip> scheduleTrips(
+            Schedule schedule, Schedule contrarySchedule, VehicleType vehicleType,
+            List<Trip> availableTrip, List<String> vehicles, LocalDateTime start, LocalDateTime end
+    ) {
         List<Trip> trips = new ArrayList<>();
         // Vòng lặp qua từng xe
         for (var vehicle : vehicles) {
@@ -64,49 +120,65 @@ public class DefaultTripService implements TripService {
                 // Thời gian đến điểm B
                 LocalDateTime arrivalTimeAtB = currentTime.plusMinutes(makeDurationTrip(schedule.getDuration()));
 
+                if (arrivalTimeAtB.isAfter(end) || arrivalTimeAtB.plusMinutes(makeDurationTrip(contrarySchedule.getDuration())).isAfter(end) ) {
+                    break;
+                }
+
+                var delayMinus = plusMinus(availableTrip, currentTime, schedule.getId());
+                currentTime = currentTime.plusMinutes(delayMinus);
                 // Kiểm tra nếu xe tới điểm đến trong khoảng thời gian delay từ 23h đến 5h
                 if (isInDelayPeriod(currentTime)) {
                     // Chuyển thời gian đến 5h sáng hôm sau
                     currentTime = currentTime.getHour() <= 6
                             ? LocalDateTime.of(arrivalTimeAtB.toLocalDate(), LocalTime.of(6, 0))
-                            : LocalDateTime.of(arrivalTimeAtB.toLocalDate().plusDays(1), LocalTime.of(5, 0));
+                            : LocalDateTime.of(arrivalTimeAtB.toLocalDate().plusDays(1), LocalTime.of(6, 0));
                     continue;  // Bắt đầu chuyến tiếp theo sau khi delay
                 }
 
                 // Thêm chuyến đi A -> B vào danh sách
-                var delayMinus = plusMinus(trips, currentTime);
-                trips.add(Trip.builder()
+                var trip = Trip.builder()
                         .licensePlate(vehicle)
                         .scheduleId(schedule.getId())
-                        .seatsAvailable(schedule.getVehicleType().getSeats().size())
+                        .vehicleTypeId(vehicleType.getId())
+                        .vehicleTypeName(vehicleType.getName())
+                        .seatsAvailable(vehicleType.getSeats().size())
+                        .price(roundPrice(vehicleType.getPrice() * schedule.getDistance(), 10000))
                         .seatsReserved(new ArrayList<>())
-                        .startTime(currentTime.plusMinutes(delayMinus))
+                        .startTime(currentTime)
                         .endTime(arrivalTimeAtB.plusMinutes(delayMinus))
-                        .build());
+                        .build();
+                trips.add(trip);
+                availableTrip.add(trip);
 
                 // Thời gian quay lại từ B về A
                 LocalDateTime departureTimeFromB = arrivalTimeAtB;
-                LocalDateTime arrivalTimeAtA = departureTimeFromB.plusMinutes(makeDurationTrip(schedule.getDuration()));
+                LocalDateTime arrivalTimeAtA = departureTimeFromB.plusMinutes(makeDurationTrip(contrarySchedule.getDuration()));
 
+                var delayMinusB = plusMinus(availableTrip, departureTimeFromB, contrarySchedule.getId());
+                departureTimeFromB = departureTimeFromB.plusMinutes(delayMinusB);
                 // Kiểm tra nếu xe quay về trong khoảng thời gian delay từ 23h đến 5h
                 if (isInDelayPeriod(departureTimeFromB)) {
                     // Delay đến 5h sáng hôm sau
                     currentTime = departureTimeFromB.getHour() <= 6
-                            ? LocalDateTime.of(arrivalTimeAtA.toLocalDate(), LocalTime.of(5, 0))
-                            : LocalDateTime.of(arrivalTimeAtA.toLocalDate().plusDays(1), LocalTime.of(5, 0));
+                            ? LocalDateTime.of(arrivalTimeAtA.toLocalDate(), LocalTime.of(6, 0))
+                            : LocalDateTime.of(arrivalTimeAtA.toLocalDate().plusDays(1), LocalTime.of(6, 0));
                     continue;  // Bắt đầu chuyến tiếp theo sau khi delay
                 }
 
                 // Thêm chuyến đi B -> A vào danh sách
-                var delayMinusB = plusMinus(trips, departureTimeFromB);
-                trips.add(Trip.builder()
+                var contraryTRip = Trip.builder()
                         .licensePlate(vehicle)
-                        .scheduleId(schedule.getId())
-                        .seatsAvailable(schedule.getVehicleType().getSeats().size())
+                        .scheduleId(contrarySchedule.getId())
+                        .vehicleTypeId(vehicleType.getId())
+                        .vehicleTypeName(vehicleType.getName())
+                        .seatsAvailable(vehicleType.getSeats().size())
+                        .price(roundPrice(vehicleType.getPrice() * schedule.getDistance(), 10000))
                         .seatsReserved(new ArrayList<>())
-                        .startTime(departureTimeFromB.plusMinutes(delayMinusB))
+                        .startTime(departureTimeFromB)
                         .endTime(arrivalTimeAtA.plusMinutes(delayMinusB))
-                        .build());
+                        .build();
+                trips.add(contraryTRip);
+                availableTrip.add(contraryTRip);
 
                 // Cập nhật thời gian cho chuyến tiếp theo
                 currentTime = arrivalTimeAtA;
@@ -114,6 +186,7 @@ public class DefaultTripService implements TripService {
         }
         return trips;
     }
+
 
     @Override
     public ListResponse<ScheduleResponse> getSchedulesIncludeTripsByFromAndTo(String from, String to, LocalDate date) {
@@ -145,31 +218,50 @@ public class DefaultTripService implements TripService {
 
     @Override
     public TripDetail getTripDetail(String tripId) {
-        var trip = tripRepository.findById(tripId).orElseThrow(
-                () -> new DataNotFoundException(List.of("Trip not found"))
-        );
-        var schedule = scheduleRepository.findById(trip.getScheduleId()).orElseThrow(
-                () -> new DataNotFoundException(List.of("Schedule not found"))
-        );
+        var trip = getTripById(tripId);
+        var schedule = getScheduleById(trip.getScheduleId());
+        var vehicleType = getVehicleTypeById(trip.getVehicleTypeId());
         var tripDetail = tripMapper.toDetail(trip);
         var scheduleDetail = scheduleMapper.toDetail(schedule);
         tripDetail.setSchedule(scheduleDetail);
-        tripDetail.setSeats(mapSeat(schedule.getVehicleType(), trip.getSeatsReserved()));
+        tripDetail.setVehicleTypeName(vehicleType.getName());
+        tripDetail.setSeats(mapSeat(vehicleType, trip.getSeatsReserved()));
+        return tripDetail;
+    }
+
+
+    @Override
+    public TripDetail getTripDetailForBooking(String tripId) {
+        var trip = getTripById(tripId);
+        var schedule = getScheduleById(trip.getScheduleId());
+        var vehicleType = getVehicleTypeById(trip.getVehicleTypeId());
+        var tripDetail = tripMapper.toDetail(trip);
+        var scheduleDetail = scheduleMapper.toDetail(schedule);
+        tripDetail.setVehicleTypeName(vehicleType.getName());
+        tripDetail.setSchedule(scheduleDetail);
         return tripDetail;
     }
 
     @Override
-    public TripDetail getTripDetailForBooking(String tripId) {
-        var trip = tripRepository.findById(tripId).orElseThrow(
-                () -> new DataNotFoundException(List.of("Trip not found"))
-        );
-        var schedule = scheduleRepository.findById(trip.getScheduleId()).orElseThrow(
-                () -> new DataNotFoundException(List.of("Schedule not found"))
-        );
-        var tripDetail = tripMapper.toDetail(trip);
-        var scheduleDetail = scheduleMapper.toDetail(schedule);
-        tripDetail.setSchedule(scheduleDetail);
-        return tripDetail;
+    @Transactional
+    @KafkaListener(topics = "BillIsBooked")
+    public void billIsBooked(BookingEvent bookingEvent) {
+        var trip = getTripById(bookingEvent.getTripId());
+        List<String> updatedSeats = trip.getSeatsReserved();
+        updatedSeats.addAll(bookingEvent.getSeats());
+        trip.setSeatsReserved(updatedSeats);
+        tripRepository.save(trip);
+    }
+
+    @Override
+    @Transactional
+    @KafkaListener(topics = "BillIsExpired")
+    public void billIsExpired(BookingEvent bookingEvent) {
+        var trip = getTripById(bookingEvent.getTripId());
+        List<String> updatedSeats = trip.getSeatsReserved();
+        updatedSeats.removeAll(bookingEvent.getSeats());
+        trip.setSeatsReserved(updatedSeats);
+        tripRepository.save(trip);
     }
 
     public List<TripDetail.SeatDto> mapSeat(VehicleType vehicleType, List<String> seatsReserved) {
@@ -187,6 +279,7 @@ public class DefaultTripService implements TripService {
         return seats;
     }
 
+
     public Integer makeDurationTrip(Double durationSchedule) {
         durationSchedule = durationSchedule * 1.5;
         int minus = (int) durationSchedule.doubleValue();
@@ -200,18 +293,34 @@ public class DefaultTripService implements TripService {
     }
 
 
-    public int plusMinus(List<Trip> trips, LocalDateTime dateTime) {
+    public int plusMinus(List<Trip> trips, LocalDateTime dateTime, String scheduleId) {
         int result = 0;
         while (true) {
             LocalDateTime temp = dateTime;
-            Trip trip = trips.stream().filter(t -> t.getStartTime().equals(temp)).findFirst().orElse(null);
+            Trip trip = trips.stream().filter(t -> t.getStartTime().equals(temp) && t.getScheduleId().equals(scheduleId)).findFirst().orElse(null);
             if (trip == null) {
                 break;
             } else {
-                result += 30;
-                dateTime = dateTime.plusMinutes(30);
+                result += 60;
+                dateTime = dateTime.plusMinutes(60);
             }
         }
         return result;
+    }
+
+
+    public List<AssignSchedule> createAssignSchedule(List<String> licensePlate, LocalDate startDate, LocalDate endDate, String route) {
+        return licensePlate.stream().map(item -> AssignSchedule.builder()
+                .licensePlate(item)
+                .startDate(startDate)
+                .endDate(endDate)
+                .route(route)
+                .build())
+                .collect(Collectors.toList());
+    }
+
+
+    public Long roundPrice(double price, int roundTo) {
+        return ((long) ((price + roundTo - 1) / roundTo) * roundTo);
     }
 }

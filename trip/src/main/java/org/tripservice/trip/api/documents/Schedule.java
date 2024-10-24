@@ -27,8 +27,4 @@ public class Schedule {
     private List<ScheduleItemInfo> transits;
     private Double duration;
     private Double distance;
-    private Long price;
-
-    @DBRef
-    private VehicleType vehicleType;
 }

@@ -36,6 +36,9 @@ public class VehicleTypeCreate implements Serializable {
     @NotNull
     private Integer numberOfFloors;
 
+    @NotNull
+    private Long price;
+
     private List<EmptySeat> emptySeats;
 
     @Data
