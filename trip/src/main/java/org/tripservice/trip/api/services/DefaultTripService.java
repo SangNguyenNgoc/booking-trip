@@ -24,7 +24,6 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.ArrayList;
-import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -203,7 +202,7 @@ public class DefaultTripService implements TripService {
 
     public int plusMinus(List<Trip> trips, LocalDateTime dateTime) {
         int result = 0;
-        while(true) {
+        while (true) {
             LocalDateTime temp = dateTime;
             Trip trip = trips.stream().filter(t -> t.getStartTime().equals(temp)).findFirst().orElse(null);
             if (trip == null) {

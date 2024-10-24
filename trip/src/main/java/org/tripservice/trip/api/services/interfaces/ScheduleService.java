@@ -1,12 +1,9 @@
 package org.tripservice.trip.api.services.interfaces;
 
-import org.tripservice.trip.api.documents.Schedule;
 import org.tripservice.trip.api.dtos.schedule.ScheduleDetail;
 import org.tripservice.trip.api.dtos.schedule.ScheduleRequest;
 import org.tripservice.trip.api.dtos.schedule.ScheduleResponse;
 import org.tripservice.trip.utils.dtos.ListResponse;
-
-import java.time.LocalDate;
 
 public interface ScheduleService {
 
@@ -16,7 +13,6 @@ public interface ScheduleService {
 
 
     ScheduleDetail updateSchedule(String id, ScheduleRequest request);
-
 
 
 }

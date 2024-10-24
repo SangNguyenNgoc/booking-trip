@@ -15,9 +15,8 @@ import java.io.IOException;
 @RequiredArgsConstructor
 public class InternalApiFilter extends OncePerRequestFilter {
 
-    private final VariableConfig variableConfig;
-
     private static final String API_KEY_HEADER = "X-API-KEY";
+    private final VariableConfig variableConfig;
 
     @Override
     protected void doFilterInternal(HttpServletRequest request,
