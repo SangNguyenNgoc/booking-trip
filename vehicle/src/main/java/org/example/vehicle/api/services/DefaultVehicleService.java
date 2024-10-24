@@ -25,15 +25,13 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import javax.print.DocFlavor;
+
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.*;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
-
 
 
 @Service
@@ -63,14 +61,14 @@ public class DefaultVehicleService implements VehicleService {
     }
 
     @Override
-    public PageResponse<VehicleInfo> getAllVehiclesByCondition(Long typeId, String status, String currentLocation) {
+    public PageResponse<VehicleInfo> getAllVehiclesByCondition(String belongTo, Long typeId, String status) {
         List<Supplier<PageResponse<VehicleInfo>>> conditions = Arrays.asList(
-                () -> (typeId != null && status != null && currentLocation != null) ?
-                        getAllVehiclesByTypeAndStatusAndCurrentLocation(typeId, status, currentLocation) : null,
-                () -> (typeId != null && status != null) ?
-                        getAllVehiclesByTypeAndStatus(typeId, status) : null,
-                () -> (typeId != null) ?
-                        getAllVehiclesByType(typeId) : null,
+                () -> (belongTo != null && typeId != null && status != null) ?
+                        getAllVehiclesByBelongToAndTypeAndStatus(belongTo, typeId, status) : null,
+                () -> (typeId != null && belongTo != null) ?
+                        getAllVehiclesByBelongToAndType(belongTo, typeId) : null,
+                () -> (belongTo != null) ?
+                        getAllVehiclesByBelongTo(belongTo) : null,
                 this::getAllVehicles
         );
 
@@ -83,16 +81,16 @@ public class DefaultVehicleService implements VehicleService {
 
     @Override
     public PageResponse<VehicleInfo> getAllVehiclesByCondition(
-            Long typeId, String status, String currentLocation, Integer pageNo, Integer pageSize
+            String belongTo, Long typeId, String status, Integer pageNo, Integer pageSize
     ) {
         List<Supplier<PageResponse<VehicleInfo>>> conditions = Arrays.asList(
-                () -> (typeId != null && status != null && currentLocation != null) ?
-                        getAllVehiclesByTypeAndStatusAndCurrentLocation(typeId, status, currentLocation, pageNo, pageSize) : null,
-                () -> (typeId != null && status != null) ?
-                        getAllVehiclesByTypeAndStatus(typeId, status, pageNo, pageSize) : null,
-                () -> (typeId != null) ?
-                        getAllVehiclesByType(typeId, pageNo, pageSize) : null,
-                () -> getAllVehicles(pageNo, pageSize)
+                () -> (typeId != null && status != null && belongTo != null) ?
+                        getAllVehiclesByBelongToAndTypeAndStatus(pageNo, pageSize, belongTo, typeId, status) : null,
+                () -> (typeId != null && belongTo != null) ?
+                        getAllVehiclesByBelongToAndType(pageNo, pageSize, belongTo, typeId) : null,
+                () -> (belongTo != null) ?
+                        getAllVehiclesByBelongTo(pageNo, pageSize, belongTo) : null,
+                this::getAllVehicles
         );
 
         return conditions.stream()
@@ -134,8 +132,8 @@ public class DefaultVehicleService implements VehicleService {
 
 
     @Override
-    public PageResponse<VehicleInfo> getAllVehiclesByType(Long typeId) {
-        var vehicles = vehicleRepository.findAllByType(typeId);
+    public PageResponse<VehicleInfo> getAllVehiclesByBelongTo(String belongTo) {
+        var vehicles = vehicleRepository.findAllByBelongTo(belongTo);
         var vehicleList = ListResponse.<VehicleInfo>builder()
                 .size(vehicles.size())
                 .data(vehicles.stream().map(vehicleMapper::toInfo).collect(Collectors.toList()))
@@ -147,11 +145,10 @@ public class DefaultVehicleService implements VehicleService {
                 .build();
     }
 
-
     @Override
-    public PageResponse<VehicleInfo> getAllVehiclesByType(Long typeId, Integer pageNo, Integer pageSize) {
+    public PageResponse<VehicleInfo> getAllVehiclesByBelongTo(Integer pageNo, Integer pageSize, String belongTo) {
         PageRequest page = PageRequest.of(pageNo, pageSize);
-        var vehicles = vehicleRepository.findAllByType(typeId, page);
+        var vehicles = vehicleRepository.findAllByBelongTo(belongTo, page);
         var vehicleList = ListResponse.<VehicleInfo>builder()
                 .size(vehicles.getSize())
                 .data(vehicles.stream().map(vehicleMapper::toInfo).collect(Collectors.toList()))
@@ -164,8 +161,8 @@ public class DefaultVehicleService implements VehicleService {
     }
 
     @Override
-    public PageResponse<VehicleInfo> getAllVehiclesByTypeAndStatus(Long typeId, String status) {
-        var vehicles = vehicleRepository.findAllByTypeAndStatus(typeId, VehicleStatus.getVehicleStatus(status));
+    public PageResponse<VehicleInfo> getAllVehiclesByBelongToAndType(String belongTo, Long typeId) {
+        var vehicles = vehicleRepository.findAllByBelongToAndType(belongTo, typeId);
         var vehicleList = ListResponse.<VehicleInfo>builder()
                 .size(vehicles.size())
                 .data(vehicles.stream().map(vehicleMapper::toInfo).collect(Collectors.toList()))
@@ -178,9 +175,9 @@ public class DefaultVehicleService implements VehicleService {
     }
 
     @Override
-    public PageResponse<VehicleInfo> getAllVehiclesByTypeAndStatus(Long typeId, String status, Integer pageNo, Integer pageSize) {
+    public PageResponse<VehicleInfo> getAllVehiclesByBelongToAndType(Integer pageNo, Integer pageSize, String belongTo, Long typeId) {
         PageRequest page = PageRequest.of(pageNo, pageSize);
-        var vehicles = vehicleRepository.findAllByTypeAndStatus(typeId,VehicleStatus.getVehicleStatus(status), page);
+        var vehicles = vehicleRepository.findAllByBelongToAndType(belongTo, typeId, page);
         var vehicleList = ListResponse.<VehicleInfo>builder()
                 .size(vehicles.getSize())
                 .data(vehicles.stream().map(vehicleMapper::toInfo).collect(Collectors.toList()))
@@ -193,8 +190,8 @@ public class DefaultVehicleService implements VehicleService {
     }
 
     @Override
-    public PageResponse<VehicleInfo> getAllVehiclesByTypeAndStatusAndCurrentLocation(Long typeId, String status, String currentLocation) {
-        var vehicles = vehicleRepository.findAllByTypeAndStatusAndCurrentLocation(typeId, VehicleStatus.getVehicleStatus(status), currentLocation);
+    public PageResponse<VehicleInfo> getAllVehiclesByBelongToAndTypeAndStatus(String belongTo, Long typeId, String status) {
+        var vehicles = vehicleRepository.findAllByBelongAndTypeAndStatus(belongTo, typeId, VehicleStatus.valueOf(status));
         var vehicleList = ListResponse.<VehicleInfo>builder()
                 .size(vehicles.size())
                 .data(vehicles.stream().map(vehicleMapper::toInfo).collect(Collectors.toList()))
@@ -207,9 +204,9 @@ public class DefaultVehicleService implements VehicleService {
     }
 
     @Override
-    public PageResponse<VehicleInfo> getAllVehiclesByTypeAndStatusAndCurrentLocation(Long typeId, String status, String currentLocation, Integer pageNo, Integer pageSize) {
+    public PageResponse<VehicleInfo> getAllVehiclesByBelongToAndTypeAndStatus(Integer pageNo, Integer pageSize, String belongTo, Long typeId, String status) {
         PageRequest page = PageRequest.of(pageNo, pageSize);
-        var vehicles = vehicleRepository.findAllByTypeAndStatusAndCurrentLocation(typeId, VehicleStatus.getVehicleStatus(status), currentLocation, page);
+        var vehicles = vehicleRepository.findAllByBelongAndTypeAndStatus(belongTo, typeId, VehicleStatus.valueOf(status), page);
         var vehicleList = ListResponse.<VehicleInfo>builder()
                 .size(vehicles.getSize())
                 .data(vehicles.stream().map(vehicleMapper::toInfo).collect(Collectors.toList()))
@@ -251,8 +248,10 @@ public class DefaultVehicleService implements VehicleService {
                 .licensePlate(vehicleCreate.getLicensePlate())
                 .manufacturingDate(vehicleCreate.getManufacturingDate())
                 .currentLocation(location)
+                .belongTo(location)
                 .type(type)
                 .status(VehicleStatus.ARRIVED)
+                .active(true)
                 .build();
         return vehicleMapper.toDetail(vehicleRepository.save(vehicle));
     }

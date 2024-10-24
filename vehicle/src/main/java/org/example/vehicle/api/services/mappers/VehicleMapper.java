@@ -27,6 +27,11 @@ public interface VehicleMapper {
             } else {
                 vehicleInfo.setNowAt(null);
             }
+            var belongToLocation = objectMapper.readValue(
+                    vehicle.getBelongTo(),
+                    VehicleInfo.LocationDto.class
+            );
+            vehicleInfo.setBelong(belongToLocation);
         } catch (JsonProcessingException e) {
             throw new RuntimeException(e);
         }
@@ -43,6 +48,11 @@ public interface VehicleMapper {
             } else {
                 vehicleDetail.setNowAt(null);
             }
+            var belongToLocation = objectMapper.readValue(
+                    vehicle.getBelongTo(),
+                    VehicleDetail.LocationDto.class
+            );
+            vehicleDetail.setBelong(belongToLocation);
         } catch (JsonProcessingException e) {
             throw new RuntimeException(e);
         }

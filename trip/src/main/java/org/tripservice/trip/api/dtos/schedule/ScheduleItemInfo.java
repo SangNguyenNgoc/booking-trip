@@ -9,7 +9,7 @@ import lombok.NoArgsConstructor;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class ScheduleInfo {
+public class ScheduleItemInfo {
     private String name;
     private String address;
     private String slug;

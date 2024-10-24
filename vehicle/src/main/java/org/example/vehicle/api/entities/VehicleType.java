@@ -37,6 +37,9 @@ public class VehicleType extends AuditorEntity {
     @Column(name = "number_of_floors", nullable = false)
     private Integer numberOfFloors;
 
+    @Column(name = "price", nullable = false)
+    private Long price;
+
     @Column(name = "active", nullable = false)
     private Boolean active;
 

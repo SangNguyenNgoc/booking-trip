@@ -1,25 +1,20 @@
-package org.tripservice.trip.api.documents;
+package org.tripservice.trip.api.dtos.trip;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import org.springframework.data.mongodb.core.mapping.Document;
+import org.tripservice.trip.api.documents.Schedule;
 
 import java.time.LocalDateTime;
-import java.util.List;
 
 @Data
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-@Document(collection = "trips")
-public class Trip {
+public class TripInfo {
     private String id;
     private LocalDateTime startTime;
     private LocalDateTime endTime;
-    private List<String> seatsReserved;
     private Integer seatsAvailable;
-    private String licensePlate;
-    private String scheduleId;
 }

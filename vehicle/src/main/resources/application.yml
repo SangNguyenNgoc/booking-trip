@@ -29,6 +29,14 @@ spring:
         dialect: org.hibernate.dialect.MySQL8Dialect
         jdbc:
           batch_size: 50
+  kafka:
+    bootstrap-servers: ${BOOTSTRAP1}
+    consumer:
+      group-id: vehicle-consumer-group
+      auto-offset-reset: earliest
+      value-deserializer: org.apache.kafka.common.serialization.ByteArrayDeserializer
+
+
   cloud:
     openfeign:
       client:

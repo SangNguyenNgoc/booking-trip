@@ -34,89 +34,49 @@ public interface VehicleRepository extends JpaRepository<Vehicle, Long> {
 
     Optional<Vehicle> findByIdAndActiveTrue(Long id);
 
-    @Query("select v from vehicles v where v.type.id = ?1")
-    Page<Vehicle> findAllByType(Long typeId, Pageable pageable);
+    @Query("select v from vehicles v where v.belongTo like concat('%', :location, '%') ")
+    Page<Vehicle> findAllByBelongTo(@Param("location") String belongTo, Pageable pageable);
 
-    @Query("select v from vehicles v where v.type.id = ?1")
-    List<Vehicle> findAllByType(Long typeId);
+    @Query("select v from vehicles v where v.belongTo like concat('%', :location, '%') ")
+    List<Vehicle> findAllByBelongTo(@Param("location") String belongTo);
+
 
     @Query("select v from vehicles v " +
-            "where v.type.id = :typeId " +
-            "and v.status = :status "
-    )
-    Page<Vehicle> findAllByTypeAndStatus(
+            "where v.belongTo like concat('%', :location, '%') " +
+            "and v.type.id = :typeId")
+    Page<Vehicle> findAllByBelongToAndType(
+            @Param("location") String belongTo,
+            @Param("typeId") Long typeId,
+            Pageable pageable
+    );
+
+    @Query("select v from vehicles v " +
+            "where v.belongTo like concat('%', :location, '%') " +
+            "and v.type.id = :typeId")
+    List<Vehicle> findAllByBelongToAndType(
+            @Param("location") String belongTo,
+            @Param("typeId") Long typeId
+    );
+
+    @Query("select v from vehicles v " +
+            "where v.belongTo like concat('%', :location, '%') " +
+            "and v.type.id = :typeId " +
+            "and v.status = :status ")
+    Page<Vehicle> findAllByBelongAndTypeAndStatus(
+            @Param("location") String belongTo,
             @Param("typeId") Long typeId,
             @Param("status") VehicleStatus status,
             Pageable pageable
     );
 
     @Query("select v from vehicles v " +
-            "where v.type.id = :typeId " +
-            "and v.status = :status "
-    )
-    List<Vehicle> findAllByTypeAndStatus(
+            "where v.belongTo like concat('%', :location, '%') " +
+            "and v.type.id = :typeId " +
+            "and v.status = :status ")
+    List<Vehicle> findAllByBelongAndTypeAndStatus(
+            @Param("location") String belongTo,
             @Param("typeId") Long typeId,
             @Param("status") VehicleStatus status
-    );
-
-    @Query("select v from vehicles v " +
-            "where v.type.id = :typeId " +
-            "and v.status = :status " +
-            "and v.currentLocation like concat('%', :location, '%')"
-    )
-    Page<Vehicle> findAllByTypeAndStatusAndCurrentLocation(
-            @Param("typeId") Long typeId,
-            @Param("status") VehicleStatus status,
-            @Param("location") String currentLocation,
-            Pageable pageable
-    );
-
-    @Query("select v from vehicles v " +
-            "where v.type.id = :typeId " +
-            "and v.status = :status " +
-            "and v.currentLocation like concat('%', :location, '%')"
-    )
-    List<Vehicle> findAllByTypeAndStatusAndCurrentLocation(
-            @Param("typeId") Long typeId,
-            @Param("status") VehicleStatus status,
-            @Param("location") String currentLocation
-    );
-
-    @Query("select v from vehicles v " +
-            "where v.status = :status "
-    )
-    Page<Vehicle> findAllByStatus(
-            @Param("status") VehicleStatus status,
-            Pageable pageable
-    );
-
-
-    @Query("select v from vehicles v " +
-            "where v.status = :status "
-    )
-    List<Vehicle> findAllByStatus(
-            @Param("status") VehicleStatus status
-    );
-
-
-    @Query("select v from vehicles v " +
-            "where v.status = :status " +
-            "and v.currentLocation like concat('%', :location, '%')"
-    )
-    Page<Vehicle> findAllByStatusAndCurrentLocation(
-            @Param("status") VehicleStatus status,
-            @Param("location") String currentLocation,
-            Pageable pageable
-    );
-
-
-    @Query("select v from vehicles v " +
-            "where v.status = :status " +
-            "and v.currentLocation like concat('%', :location, '%')"
-    )
-    List<Vehicle> findAllByStatusAndCurrentLocation(
-            @Param("status") VehicleStatus status,
-            @Param("location") String currentLocation
     );
 
 

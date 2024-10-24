@@ -35,6 +35,9 @@ public class Vehicle extends AuditorEntity {
     @Column(name = "current_location", nullable = true, length = 500)
     private String currentLocation;
 
+    @Column(name = "belong_to", nullable = false, length = 500)
+    private String belongTo;
+
     @Column(name = "last_arrival_at")
     private LocalDateTime lastArrivalAt;
 
@@ -55,5 +58,12 @@ public class Vehicle extends AuditorEntity {
             cascade = CascadeType.PERSIST
     )
     private Set<MaintainSchedule> maintainSchedules;
+
+    @OneToMany(
+            mappedBy = "vehicle",
+            fetch = FetchType.LAZY,
+            cascade = CascadeType.PERSIST
+    )
+    private Set<AssignSchedule> assignSchedules;
 
 }

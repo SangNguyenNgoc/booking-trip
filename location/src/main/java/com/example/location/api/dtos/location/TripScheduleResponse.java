@@ -1,5 +1,6 @@
 package com.example.location.api.dtos.location;
 
+import com.example.location.api.dtos.region.RegionInfo;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -13,6 +14,8 @@ import java.util.List;
 @AllArgsConstructor
 public class TripScheduleResponse {
 
+    private RegionInfo regionFrom;
+    private RegionInfo regionTo;
     private LocationName from;
     private LocationName to;
     private List<ScheduleInfo> pickUps;

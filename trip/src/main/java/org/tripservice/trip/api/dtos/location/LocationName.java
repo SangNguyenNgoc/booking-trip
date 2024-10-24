@@ -1,4 +1,4 @@
-package org.tripservice.trip.api.dtos.schedule;
+package org.tripservice.trip.api.dtos.location;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;

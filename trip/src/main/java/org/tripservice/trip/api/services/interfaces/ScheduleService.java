@@ -1,18 +1,21 @@
 package org.tripservice.trip.api.services.interfaces;
 
 import org.tripservice.trip.api.documents.Schedule;
-import org.tripservice.trip.api.dtos.schedule.TripScheduleRequest;
+import org.tripservice.trip.api.dtos.schedule.ScheduleDetail;
+import org.tripservice.trip.api.dtos.schedule.ScheduleRequest;
+import org.tripservice.trip.api.dtos.schedule.ScheduleResponse;
 import org.tripservice.trip.utils.dtos.ListResponse;
 
-import java.util.List;
+import java.time.LocalDate;
 
 public interface ScheduleService {
 
-    Schedule createSchedule(TripScheduleRequest request);
+    ScheduleDetail createSchedule(ScheduleRequest request);
 
-    ListResponse<Schedule> getSchedulesByFromAndTo(String from, String to);
+    ListResponse<ScheduleResponse> getSchedulesByFromAndTo(String from, String to);
 
-    Schedule updateSchedule(String id, TripScheduleRequest request);
+
+    ScheduleDetail updateSchedule(String id, ScheduleRequest request);
 
 
 
