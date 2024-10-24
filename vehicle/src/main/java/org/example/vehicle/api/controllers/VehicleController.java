@@ -44,16 +44,16 @@ public class VehicleController {
     @GetMapping
     @PreAuthorize("hasAuthority('SCOPE_ROLE_ADMIN')")
     public ResponseEntity<PageResponse<VehicleInfo>> getVehicles(
+            @RequestParam(value = "belong", required = false) String belong,
             @RequestParam(value = "type", required = false) Long typeId,
             @RequestParam(value = "status", required = false) String status,
-            @RequestParam(value = "location", required = false) String location,
             @RequestParam(value = "page", required = false) Integer pageNo,
             @RequestParam(value = "size", required = false) Integer pageSize
     ) {
         if(pageNo == null || pageSize == null) {
-            return ResponseEntity.ok(vehicleService.getAllVehiclesByCondition(typeId, status, location));
+            return ResponseEntity.ok(vehicleService.getAllVehiclesByCondition(belong, typeId, status));
         }
-        return ResponseEntity.ok(vehicleService.getAllVehiclesByCondition(typeId, status, location, pageNo, pageSize));
+        return ResponseEntity.ok(vehicleService.getAllVehiclesByCondition(belong, typeId, status, pageNo, pageSize));
     }
 
 
