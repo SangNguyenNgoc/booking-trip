@@ -1,10 +1,7 @@
 package org.example.profile.api.services;
 
 import lombok.RequiredArgsConstructor;
-import org.example.profile.api.dtos.ProfileResponse;
-import org.example.profile.api.dtos.RegisterRequest;
-import org.example.profile.api.dtos.UpdateProfileRequest;
-import org.example.profile.api.dtos.UserDto;
+import org.example.profile.api.dtos.*;
 import org.example.profile.api.entities.Profile;
 import org.example.profile.api.interfaces.ProfileMapper;
 import org.example.profile.api.interfaces.ProfileRepository;
@@ -12,8 +9,10 @@ import org.example.profile.utils.dtos.ListResponse;
 import org.example.profile.utils.exception.AppException;
 import org.example.profile.utils.exception.DataNotFoundException;
 import org.example.profile.utils.exception.InputInvalidException;
+import org.example.profile.utils.services.AppUtils;
 import org.example.profile.utils.services.ObjectsValidator;
 import org.springframework.http.HttpStatus;
+import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -29,6 +28,8 @@ public interface ProfileService {
     ListResponse<ProfileResponse> getAllProfile();
     ProfileResponse updateInfo(UpdateProfileRequest updateProfileRequest);
     String register(RegisterRequest registerRequest);
+    void handleAccountCreatedError(AccountCreatedError error);
+    public String registerEmployee(RegisterEmployeeRequest registerRequest);
 
 }
 @Service
@@ -39,6 +40,7 @@ class ProfileServiceImpl implements ProfileService{
     private final ProfileMapper mapper;
     private final ObjectsValidator<UpdateProfileRequest> updateProfileRequestObjectsValidator;
     private final ObjectsValidator<RegisterRequest> registerRequestObjectsValidator;
+    private final ObjectsValidator<RegisterEmployeeRequest> registerEmployeeRequestObjectsValidator;
     private final KafkaTemplate<String, Object> kafkaTemplate;
 
     @Override
@@ -54,15 +56,52 @@ class ProfileServiceImpl implements ProfileService{
         Profile newProfile = profileRepository.save(Profile.builder()
                 .email(registerRequest.getEmail())
                 .fullname(registerRequest.getFullname())
+                .type("Customer")
+                .phoneNumber(registerRequest.getPhoneNumber())
                 .build()
         );
-        UserDto newUser = UserDto.builder()
+        AccountCreated newUser = AccountCreated.builder()
                 .profileId(newProfile.getId())
                 .password(registerRequest.getPassword())
-                .username(registerRequest.getUsername())
+                .username(registerRequest.getEmail())
+                .RoleId(2)
                 .build();
         kafkaTemplate.send("createAccount", newUser);
         return "success";
+    }
+
+    @Override
+    public String registerEmployee(RegisterEmployeeRequest registerRequest) {
+        registerEmployeeRequestObjectsValidator.validate(registerRequest);
+
+        if (profileRepository.existsByEmail(registerRequest.getEmail())){
+            throw new AppException("Email taken!", HttpStatus.CONFLICT, List.of("Email already exists"));
+        }
+        Profile newProfile = profileRepository.save(Profile.builder()
+                .email(registerRequest.getEmail())
+                .fullname(registerRequest.getFullname())
+                .type("Employee")
+                .build()
+        );
+        AccountCreated newUser = AccountCreated.builder()
+                .profileId(newProfile.getId())
+                .password(AppUtils.generatePassword())
+                .username(registerRequest.getEmail())
+                .RoleId(3)
+                .build();
+        kafkaTemplate.send("createAccount", newUser);
+        return "success";
+    }
+
+    @Override
+    @Transactional
+    @KafkaListener(
+            topics = "AccountCreatedFailed",
+            id = "AccountCreatedErrorGroup"
+    )
+    public void handleAccountCreatedError(AccountCreatedError error) {
+        var profile = profileRepository.findById(error.getProfileId());
+        profile.ifPresent(profileRepository::delete);
     }
 
     @Override

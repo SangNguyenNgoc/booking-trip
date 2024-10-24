@@ -9,10 +9,11 @@ import java.io.Serializable;
  */
 @Setter
 @Getter
-@RequiredArgsConstructor
 @AllArgsConstructor
+@NoArgsConstructor
 public class ProfileResponse implements Serializable {
     private String fullname;
     private String email;
     private String phoneNumber;
+    private String type;
 }

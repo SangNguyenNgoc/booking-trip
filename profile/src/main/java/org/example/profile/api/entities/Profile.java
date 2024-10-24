@@ -3,6 +3,7 @@ package org.example.profile.api.entities;
 import jakarta.persistence.*;
 import lombok.*;
 import org.example.profile.utils.auditing.TimestampEntity;
+import org.hibernate.annotations.Type;
 
 @Getter
 @Setter
@@ -25,4 +26,7 @@ public class Profile extends TimestampEntity {
 
     @Column(name = "phone_number", nullable = true)
     private String phoneNumber;
+
+    @Column(name = "type", nullable = false)
+    private String type;
 }

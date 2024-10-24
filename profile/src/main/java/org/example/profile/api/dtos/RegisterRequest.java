@@ -5,12 +5,14 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Pattern;
 import lombok.*;
 
+import java.io.Serializable;
+
 @Setter
 @Getter
-@RequiredArgsConstructor
 @AllArgsConstructor
 @Builder
-public class RegisterRequest {
+@NoArgsConstructor
+public class RegisterRequest implements Serializable {
     @Email(message = "Email invalid")
     private String email;
     @NotBlank(message = "password must not be blank")
@@ -20,6 +22,7 @@ public class RegisterRequest {
     private String confirmPassword;
     @NotBlank(message = "fullname must not be blank")
     private String fullname;
-    @NotBlank(message = "username must not be blank")
-    private String username;
+    @NotBlank(message = "Phone number must not be blank")
+    @Pattern(regexp = "^0[35789]\\d{8}$", message = "Phone number invalid")
+    private String phoneNumber;
 }

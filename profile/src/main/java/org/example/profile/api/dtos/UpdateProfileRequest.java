@@ -13,8 +13,8 @@ import java.io.Serializable;
  */
 @Setter
 @Getter
-@RequiredArgsConstructor
 @AllArgsConstructor
+@NoArgsConstructor
 public class UpdateProfileRequest implements Serializable {
     @NotBlank(message = "fullname must not be blank")
     private String fullname;
