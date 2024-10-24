@@ -57,7 +57,7 @@ public class OpenApiConfig {
                         )
                 )
                 .servers(List.of(new Server()
-                        .url("http://localhost:8085")
+                        .url(appUrl)
                         .description(appUrl.split("://")[0]))
                 );
     }

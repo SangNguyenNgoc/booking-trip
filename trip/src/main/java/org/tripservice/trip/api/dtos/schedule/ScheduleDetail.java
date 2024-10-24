@@ -4,7 +4,6 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import org.tripservice.trip.api.documents.VehicleType;
 import org.tripservice.trip.api.dtos.location.LocationName;
 import org.tripservice.trip.api.dtos.location.RegionInfo;
 

@@ -9,9 +9,7 @@ import org.tripservice.trip.api.documents.VehicleType;
 import org.tripservice.trip.api.dtos.schedule.ScheduleDetail;
 import org.tripservice.trip.api.dtos.schedule.ScheduleRequest;
 import org.tripservice.trip.api.dtos.schedule.ScheduleResponse;
-import org.tripservice.trip.api.dtos.trip.TripInfo;
 import org.tripservice.trip.api.repositories.ScheduleRepository;
-import org.tripservice.trip.api.repositories.TripRepository;
 import org.tripservice.trip.api.repositories.VehicleTypeRepository;
 import org.tripservice.trip.api.services.interfaces.ScheduleService;
 import org.tripservice.trip.api.services.mappers.ScheduleMapper;
@@ -23,8 +21,6 @@ import org.tripservice.trip.utils.dtos.ListResponse;
 import org.tripservice.trip.utils.exception.DataNotFoundException;
 import org.tripservice.trip.utils.services.ObjectsValidator;
 
-import java.time.LocalDate;
-import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -72,7 +68,7 @@ public class DefaultScheduleService implements ScheduleService {
     @Override
     public ListResponse<ScheduleResponse> getSchedulesByFromAndTo(String from, String to) {
         List<Schedule> schedules;
-        if(from == null || to == null) {
+        if (from == null || to == null) {
             schedules = scheduleRepository.findAll();
         } else {
             schedules = scheduleRepository.findByRegionFromAndRegionTo(from, to);
