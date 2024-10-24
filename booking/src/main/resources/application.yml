@@ -1,0 +1,88 @@
+server:
+  port: 8086
+
+spring:
+  datasource:
+    driverClassName: com.mysql.cj.jdbc.Driver
+    url: jdbc:mysql://${MYSQL_HOST}:${MYSQL_PORT}/booking-trip
+    username: ${MYSQL_USER}
+    password: ${MYSQL_PASS}
+  servlet:
+    multipart:
+      max-file-size: 5MB
+      max-request-size: 5MB
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: true
+    properties:
+      hibernate:
+        format_sql: false
+        dialect: org.hibernate.dialect.MySQL8Dialect
+  application:
+    name: booking
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          issuer-uri: ${AUTH_URL}
+  kafka:
+    bootstrap-servers: ${BOOTSTRAP1}
+    producer:
+      value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
+      acks: -1
+      retries: 1
+      properties:
+        enable:
+          idempotence: true
+        max:
+          in:
+            flight:
+              request:
+                per:
+                  connection: 5
+
+logging:
+  level:
+    org.springframework.cache: trace
+    org.ehcache: trace
+    org.hibernate.SQL: debug
+    org.hibernate.type.descriptor.sql.BasicBinder: trace
+
+eureka:
+  instance:
+    hostname: ${EUREKA_HOST}
+  client:
+    service-url:
+      defaultZone: ${EUREKA_DEFAULT_ZONE}
+
+management:
+  tracing:
+    sampling:
+      probability: 1
+  zipkin:
+    tracing:
+      endpoint: ${BASE_URL}/api/v2/spans
+  endpoints:
+    web:
+      exposure:
+        include: info, health
+
+url:
+  base-url: ${SSL}://${DOMAIN}/api/v1
+  auth-url: ${AUTH_DOMAIN}
+
+springdoc:
+  swagger-ui:
+    path: /swagger-ui.html0
+
+vn_pay:
+  vn_pay_url: https://sandbox.vnpayment.vn/paymentv2/vpcpay.html
+  vn_pay_return_url: ${SSL}://${DOMAIN}/api/v1/bills/payment
+  tmn_code: ${TMN_CODE}
+  key: ${VNPAY_KEY}
+  time_out: 10
+
+internal-api-key:
+  trip: ${TRIP_API_KEY}
+  booking: ${BOOKING_API_KEY}
