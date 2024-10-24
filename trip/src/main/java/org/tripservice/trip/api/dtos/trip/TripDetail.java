@@ -21,6 +21,8 @@ public class TripDetail {
     private LocalDateTime endTime;
     private Integer seatsAvailable;
     private String licensePlate;
+    private Long price;
+    private String vehicleTypeName;
 
     @JsonInclude(JsonInclude.Include.NON_NULL)
     private List<SeatDto> seats;

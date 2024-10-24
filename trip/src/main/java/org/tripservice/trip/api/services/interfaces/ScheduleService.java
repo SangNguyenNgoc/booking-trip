@@ -11,7 +11,6 @@ public interface ScheduleService {
 
     ListResponse<ScheduleResponse> getSchedulesByFromAndTo(String from, String to);
 
-
     ScheduleDetail updateSchedule(String id, ScheduleRequest request);
 
 

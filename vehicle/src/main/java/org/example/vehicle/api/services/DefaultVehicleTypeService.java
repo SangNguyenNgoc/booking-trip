@@ -16,6 +16,7 @@ import org.example.vehicle.api.services.mappers.VehicleTypeMapper;
 import org.example.vehicle.utils.dtos.ListResponse;
 import org.example.vehicle.utils.exception.DataNotFoundException;
 import org.example.vehicle.utils.services.ObjectsValidator;
+import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -37,6 +38,8 @@ public class DefaultVehicleTypeService implements VehicleTypeService {
     ObjectsValidator<VehicleTypeCreate> createValidator;
     ObjectsValidator<VehicleTypeUpdate> updateValidator;
     ObjectsValidator<VehicleTypeCreate.EmptySeat> emptySeatValidator;
+
+    KafkaTemplate<String, Object> kafkaTemplate;
 
     @Override
     public ListResponse<VehicleTypeInfo> getAllVehicleTypes() {
@@ -88,11 +91,14 @@ public class DefaultVehicleTypeService implements VehicleTypeService {
                 .numberOfRows(vehicleTypeCreate.getNumberOfRows())
                 .seatsPerRow(vehicleTypeCreate.getSeatsPerRow())
                 .numberOfSeats(vehicleTypeCreate.getNumberOfSeats())
+                .price(vehicleTypeCreate.getPrice())
                 .active(true)
                 .build();
         vehicleType.setSeats(createSeats(vehicleTypeCreate, vehicleType));
         var vehicleTypeSaved = vehicleTypeRepository.save(vehicleType);
-        return vehicleTypeMapper.toDetail(vehicleTypeSaved);
+        var vehicleDetail = vehicleTypeMapper.toDetail(vehicleTypeSaved);
+        kafkaTemplate.send("vehicleTypeIsCreated", vehicleDetail);
+        return vehicleDetail;
     }
 
 

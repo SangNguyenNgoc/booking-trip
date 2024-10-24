@@ -12,7 +12,6 @@ import java.util.Optional;
 
 @FeignClient(
         name = "location",
-        url = "http://localhost:8082",
         configuration = ClientConfig.class
 )
 public interface LocationClient {

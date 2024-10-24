@@ -19,6 +19,8 @@ public interface VehicleRepository extends JpaRepository<Vehicle, Long> {
     @Query("select v.licensePlate from vehicles v")
     List<String> findAllLicensePlates();
 
+    List<Vehicle> findAllByLicensePlateIn(List<String> licensePlates);
+
     @Query("select v.licensePlate from vehicles v where v.type.id = ?1")
     List<String> findAllLicensePlatesByType(Long typeId);
 

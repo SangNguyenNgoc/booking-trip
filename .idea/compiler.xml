@@ -21,7 +21,7 @@
         <module name="location" />
         <module name="profile" />
       </profile>
-      <profile name="Annotation profile for vehicle" enabled="true">
+      <profile name="Annotation profile for trip" enabled="true">
         <sourceOutputDir name="target/generated-sources/annotations" />
         <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
         <outputRelativeToContentRoot value="true" />
@@ -34,7 +34,6 @@
         <module name="vehicle" />
         <module name="booking" />
         <module name="trip" />
-        <module name="vehicle" />
         <module name="profile" />
       </profile>
     </annotationProcessing>
