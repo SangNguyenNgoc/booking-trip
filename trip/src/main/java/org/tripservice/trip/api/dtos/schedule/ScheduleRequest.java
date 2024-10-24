@@ -1,6 +1,7 @@
 package org.tripservice.trip.api.dtos.schedule;
 
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -13,14 +14,16 @@ import java.util.List;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class TripScheduleRequest {
+public class ScheduleRequest {
 
     @NotBlank
     private String from;
     @NotBlank
     private String to;
-
     private List<String> pickUps;
-
     private List<String> transits;
+    @NotNull
+    private Long vehicleTypeId;
+    @NotNull
+    private Long price;
 }

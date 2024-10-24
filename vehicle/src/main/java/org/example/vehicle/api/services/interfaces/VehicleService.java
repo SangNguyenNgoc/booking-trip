@@ -15,15 +15,15 @@ public interface VehicleService {
     List<String> getLicensePlateByType(Long typeId);
 
     PageResponse<VehicleInfo> getAllVehiclesByCondition(
+            String beLongTo,
             Long typeId,
-            String status,
-            String currentLocation
+            String status
     );
 
     PageResponse<VehicleInfo> getAllVehiclesByCondition(
+            String beLongTo,
             Long typeId,
             String status,
-            String currentLocation,
             Integer pageNo, Integer pageSize
     );
 
@@ -31,25 +31,21 @@ public interface VehicleService {
 
     PageResponse<VehicleInfo> getAllVehicles(Integer pageNo, Integer pageSize);
 
-    PageResponse<VehicleInfo> getAllVehiclesByType(Long typeId);
+    PageResponse<VehicleInfo> getAllVehiclesByBelongTo(String belongTo);
 
-    PageResponse<VehicleInfo> getAllVehiclesByType(Long typeId, Integer pageNo, Integer pageSize);
+    PageResponse<VehicleInfo> getAllVehiclesByBelongTo(Integer pageNo, Integer pageSize, String belongTo);
 
-    PageResponse<VehicleInfo> getAllVehiclesByTypeAndStatus(
-            Long typeId, String status
+    PageResponse<VehicleInfo> getAllVehiclesByBelongToAndType(String belongTo, Long typeId);
+
+    PageResponse<VehicleInfo> getAllVehiclesByBelongToAndType(Integer pageNo, Integer pageSize, String belongTo, Long typeId);
+
+    PageResponse<VehicleInfo> getAllVehiclesByBelongToAndTypeAndStatus(String belongTo, Long typeId, String status);
+
+    PageResponse<VehicleInfo> getAllVehiclesByBelongToAndTypeAndStatus(
+            Integer pageNo, Integer pageSize,
+            String belongTo, Long typeId, String status
     );
 
-    PageResponse<VehicleInfo> getAllVehiclesByTypeAndStatus(
-            Long typeId, String status, Integer pageNo, Integer pageSize
-    );
-
-    PageResponse<VehicleInfo> getAllVehiclesByTypeAndStatusAndCurrentLocation(
-            Long typeId, String status, String currentLocation
-    );
-
-    PageResponse<VehicleInfo> getAllVehiclesByTypeAndStatusAndCurrentLocation(
-            Long typeId, String status, String currentLocation, Integer pageNo, Integer pageSize
-    );
 
     VehicleDetail getVehicleDetailById(Long id);
 

@@ -3,11 +3,13 @@ package com.example.location.api.services;
 import com.example.location.api.dtos.location.*;
 import com.example.location.api.entities.Distance;
 import com.example.location.api.entities.Location;
+import com.example.location.api.entities.Region;
 import com.example.location.api.repositories.DistanceRepository;
 import com.example.location.api.repositories.LocationRepository;
 import com.example.location.api.repositories.RegionRepository;
 import com.example.location.api.services.interfaces.LocationService;
 import com.example.location.api.services.mappers.LocationMapper;
+import com.example.location.api.services.mappers.RegionMapper;
 import com.example.location.config.VariableConfig;
 import com.example.location.clients.GeocodingClient;
 import com.example.location.clients.RoutingClient;
@@ -33,6 +35,7 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 @FieldDefaults(makeFinal = true, level = AccessLevel.PRIVATE)
 public class DefaultLocationService implements LocationService {
+    private final RegionMapper regionMapper;
 
     LocationRepository locationRepository;
     RegionRepository regionRepository;
@@ -200,12 +203,17 @@ public class DefaultLocationService implements LocationService {
 
     @Override
     public TripScheduleResponse getTripSchedule(TripScheduleRequest request) {
+
+
         var from = getBusStationBySlug(request.getFrom());
         var to = getBusStationBySlug(request.getTo());
         var pickUpList = getLocationsBySlug(request.getPickUps());
         var transitList = getLocationsBySlug(request.getTransits());
 
-        var response = buildTripScheduleResponse(from, to, pickUpList, transitList);
+        var response = buildTripScheduleResponse(
+                from.getRegion(), to.getRegion(),
+                from, to, pickUpList, transitList
+        );
 
         Distance distance = calculateAndSetDistance(from, to);
         response.setDuration(distance.getDuration());
@@ -273,11 +281,15 @@ public class DefaultLocationService implements LocationService {
         );
     }
 
-
-    private TripScheduleResponse buildTripScheduleResponse(Location from, Location to,
-                                                           List<Location> pickUpList, List<Location> transitList) {
+    private TripScheduleResponse buildTripScheduleResponse(
+            Region regionFrom, Region regionTo,
+            Location from, Location to,
+            List<Location> pickUpList, List<Location> transitList
+    ) {
 
         return TripScheduleResponse.builder()
+                .regionFrom(regionMapper.toDto(regionFrom))
+                .regionTo(regionMapper.toDto(regionTo))
                 .from(locationMapper.toName(from))
                 .to(locationMapper.toName(to))
                 .pickUps(calculateAndSetScheduleInfo(from, pickUpList, false))

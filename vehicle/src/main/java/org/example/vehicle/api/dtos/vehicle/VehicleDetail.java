@@ -23,6 +23,7 @@ public class VehicleDetail implements Serializable {
     private LocalDate manufacturingDate;
     private VehicleStatus status;
     private LocationDto nowAt;
+    private LocationDto belong;
     private LocalDateTime lastArrivalAt;
     private VehicleTypeDto type;
     private Boolean active;

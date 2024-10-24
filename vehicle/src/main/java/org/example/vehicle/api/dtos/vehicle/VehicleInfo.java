@@ -21,6 +21,7 @@ public class VehicleInfo implements Serializable {
     private LocalDate manufacturingDate;
     private VehicleStatus status;
     private LocationDto nowAt;
+    private LocationDto belong;
     private LocalDateTime lastArrivalAt;
     private Boolean active;
     private VehicleTypeDto type;
@@ -47,4 +48,6 @@ public class VehicleInfo implements Serializable {
         private String address;
         private String slug;
     }
+
+
 }
