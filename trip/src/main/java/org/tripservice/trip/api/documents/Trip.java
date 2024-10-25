@@ -21,5 +21,6 @@ public class Trip {
     private List<String> seatsReserved;
     private Integer seatsAvailable;
     private String licensePlate;
+    private Long price;
     private String scheduleId;
 }

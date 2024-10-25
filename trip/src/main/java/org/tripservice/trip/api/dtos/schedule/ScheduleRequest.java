@@ -22,8 +22,7 @@ public class ScheduleRequest {
     private String to;
     private List<String> pickUps;
     private List<String> transits;
+
     @NotNull
     private Long vehicleTypeId;
-    @NotNull
-    private Long price;
 }

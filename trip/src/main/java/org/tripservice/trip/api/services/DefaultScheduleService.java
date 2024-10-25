@@ -5,7 +5,6 @@ import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import org.springframework.stereotype.Service;
 import org.tripservice.trip.api.documents.Schedule;
-import org.tripservice.trip.api.documents.VehicleType;
 import org.tripservice.trip.api.dtos.schedule.ScheduleDetail;
 import org.tripservice.trip.api.dtos.schedule.ScheduleRequest;
 import org.tripservice.trip.api.dtos.schedule.ScheduleResponse;
@@ -13,9 +12,7 @@ import org.tripservice.trip.api.repositories.ScheduleRepository;
 import org.tripservice.trip.api.repositories.VehicleTypeRepository;
 import org.tripservice.trip.api.services.interfaces.ScheduleService;
 import org.tripservice.trip.api.services.mappers.ScheduleMapper;
-import org.tripservice.trip.api.services.mappers.TripMapper;
 import org.tripservice.trip.clients.LocationClient;
-import org.tripservice.trip.clients.VehicleClient;
 import org.tripservice.trip.config.VariableConfig;
 import org.tripservice.trip.utils.dtos.ListResponse;
 import org.tripservice.trip.utils.exception.DataNotFoundException;
@@ -30,17 +27,14 @@ import java.util.stream.Collectors;
 public class DefaultScheduleService implements ScheduleService {
 
     LocationClient locationClient;
-    VehicleClient vehicleClient;
 
     ScheduleRepository scheduleRepository;
-
     VehicleTypeRepository vehicleTypeRepository;
 
     VariableConfig variableConfig;
 
     ObjectsValidator<ScheduleRequest> tripScheduleValidator;
-    private final ScheduleMapper scheduleMapper;
-    private final TripMapper tripMapper;
+    ScheduleMapper scheduleMapper;
 
     @Override
     public ScheduleDetail createSchedule(ScheduleRequest request) {
@@ -48,19 +42,11 @@ public class DefaultScheduleService implements ScheduleService {
         var schedule = locationClient.getTripSchedule(request, variableConfig.LOCATION_API_KEY).orElseThrow(
                 () -> new DataNotFoundException(List.of("Locations not found"))
         );
-
-        var vehicleTypeOptional = vehicleTypeRepository.findById(request.getVehicleTypeId());
-        VehicleType vehicleType;
-        if (vehicleTypeOptional.isEmpty()) {
-            vehicleType = vehicleClient.findById(request.getVehicleTypeId(), variableConfig.VEHICLE_API_KEY).orElseThrow(
-                    () -> new DataNotFoundException(List.of("Vehicle types not found"))
-            );
-            vehicleTypeRepository.save(vehicleType);
-        } else {
-            vehicleType = vehicleTypeOptional.get();
-        }
-        schedule.setVehicleType(vehicleType);
-        schedule.setPrice(request.getPrice());
+        var vehicleType = vehicleTypeRepository.findById(request.getVehicleTypeId()).orElseThrow(
+                () -> new DataNotFoundException(List.of("Vehicle types not found"))
+        );
+        schedule.setVehicleTypeId(vehicleType.getId());
+        schedule.setVehicleTypeName(vehicleType.getName());
         scheduleRepository.save(schedule);
         return scheduleMapper.toDetail(schedule);
     }
@@ -88,24 +74,9 @@ public class DefaultScheduleService implements ScheduleService {
         var newSchedule = locationClient.getTripSchedule(request, variableConfig.LOCATION_API_KEY).orElseThrow(
                 () -> new DataNotFoundException(List.of("Locations not found"))
         );
-        VehicleType vehicleType;
-        var vehicleTypeOptional = vehicleTypeRepository.findById(request.getVehicleTypeId());
-        if (vehicleTypeOptional.isEmpty()) {
-            vehicleType = vehicleClient.findById(request.getVehicleTypeId(), variableConfig.VEHICLE_API_KEY).orElseThrow(
-                    () -> new DataNotFoundException(List.of("Vehicle types not found"))
-            );
-            vehicleTypeRepository.save(vehicleType);
-        } else {
-            vehicleType = vehicleTypeOptional.get();
-        }
-        newSchedule.setVehicleType(vehicleType);
-        newSchedule.setPrice(request.getPrice());
         newSchedule.setId(id);
         scheduleRepository.save(newSchedule);
         return scheduleMapper.toDetail(newSchedule);
     }
 
-    public Long roundPrice(double price, int roundTo) {
-        return ((long) ((price + roundTo - 1) / roundTo) * roundTo);
-    }
 }

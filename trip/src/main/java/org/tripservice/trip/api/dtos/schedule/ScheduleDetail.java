@@ -23,18 +23,6 @@ public class ScheduleDetail {
     private List<ScheduleItemInfo> transits;
     private Double duration;
     private Double distance;
-    private Long price;
-    private VehicleTypeDto vehicleType;
-
-    @Data
-    @Builder
-    @NoArgsConstructor
-    @AllArgsConstructor
-    public static class VehicleTypeDto {
-        private Long id;
-        private String name;
-        private String description;
-        private Integer numberOfRows;
-        private Integer seatsPerRow;
-    }
+    private Long vehicleTypeId;
+    private String vehicleTypeName;
 }
