@@ -11,7 +11,6 @@ import java.util.Optional;
 
 @FeignClient(
         name = "vehicle",
-        url = "http://localhost:8084",
         configuration = ClientConfig.class
 )
 public interface VehicleClient {
