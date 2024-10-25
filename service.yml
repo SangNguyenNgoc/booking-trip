@@ -43,3 +43,14 @@ services:
       - "8085:8085"
     env_file:
       - .env
+
+  booking:
+    environment:
+      TAG: booking
+    build: ./booking
+    container_name: booking
+    restart: on-failure
+    ports:
+      - "8086:8086"
+    env_file:
+      - .env

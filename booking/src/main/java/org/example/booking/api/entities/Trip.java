@@ -34,11 +34,23 @@ public class Trip {
     @Column(name = "price")
     private Double price;
 
+    @Column(name = "region_from_name")
+    private String regionFromName;
+
+    @Column(name = "region_to_name")
+    private String regionToName;
+
+    @Column(name = "location_from_name")
+    private String locationFromName;
+
+    @Column(name = "location_to_name")
+    private String locationToName;
+
     @OneToMany(
             mappedBy = "trip",
             fetch = FetchType.EAGER,
-            cascade = CascadeType.ALL
+            cascade = CascadeType.PERSIST
     )
-    private Set<Ticket> tickets;
+    private Set<Bill> bills;
 
 }

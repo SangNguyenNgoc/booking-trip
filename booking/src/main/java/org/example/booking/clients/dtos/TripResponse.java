@@ -16,12 +16,43 @@ public class TripResponse {
     private int seatsAvailable;
     private String licensePlate;
     private ScheduleDTO schedule;
+    private Double price;
 
     @Data
     @AllArgsConstructor
     @NoArgsConstructor
     @Builder
     public static class ScheduleDTO {
-        private Double price;
+        private FromToDTO from;
+        private FromToDTO to;
+        private RegionDTO regionFrom;
+        private RegionDTO regionTo;
+
+    }
+
+    @Data
+    @AllArgsConstructor
+    @NoArgsConstructor
+    @Builder
+    public static class FromToDTO {
+        private String name;
+        private String address;
+        private String slug;
+
+    }
+
+    @Data
+    @AllArgsConstructor
+    @NoArgsConstructor
+    @Builder
+    public static class RegionDTO {
+        private String id;
+        private String name;
+        private String slug;
+        private String type;
+        private String nameWithType;
+        private int code;
+
+        // Getters and Setters
     }
 }

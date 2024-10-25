@@ -2,6 +2,8 @@ package org.example.booking.api.services;
 
 import lombok.RequiredArgsConstructor;
 import org.example.booking.api.dtos.BillCreate;
+import org.example.booking.api.dtos.BillResponse;
+import org.example.booking.api.dtos.BillIsExpired;
 import org.example.booking.api.entities.Bill;
 import org.example.booking.api.entities.BillStatus;
 import org.example.booking.api.entities.Ticket;
@@ -11,14 +13,18 @@ import org.example.booking.api.repositories.BillStatusRepository;
 import org.example.booking.api.repositories.TicketRepository;
 import org.example.booking.api.repositories.TripRepository;
 import org.example.booking.api.services.interfaces.BillService;
+import org.example.booking.api.services.mapper.BillMapper;
 import org.example.booking.api.services.mapper.TripMapper;
 import org.example.booking.clients.TripClient;
 import org.example.booking.config.VariableConfig;
+import org.example.booking.utils.dtos.ListResponse;
 import org.example.booking.utils.exception.DataNotFoundException;
 import org.example.booking.utils.exception.InputInvalidException;
 import org.example.booking.utils.services.AppUtils;
 import org.example.booking.utils.services.VnPayService;
+import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.kafka.core.KafkaTemplate;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.oauth2.jwt.Jwt;
@@ -32,6 +38,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
+import java.util.regex.Pattern;
+import java.util.regex.Matcher;
 
 @Service
 @RequiredArgsConstructor
@@ -44,6 +52,7 @@ public class DefaultBillService implements BillService {
     private final VnPayService vnPayService;
     private final TripClient tripClient;
     private final TripMapper tripMapper;
+    private final BillMapper billMapper;
     private final VariableConfig variableConfig;
     private final KafkaTemplate<String, Object> kafkaTemplate;
 
@@ -63,15 +72,15 @@ public class DefaultBillService implements BillService {
     }
 
     @Override
-    public String create(BillCreate billCreate){
+    public String create(BillCreate billCreate) {
         var trip = checkTripAndGetPrize(billCreate.getTripId());
         //Check ghế đã đặt chưa
-        checkSeatAreReserved(billCreate.getSeatId(), billCreate.getTripId());
+        checkSeatAreReserved(billCreate.getSeatName(), billCreate.getTripId());
         BillStatus billStatus = billStatusRepository.findById(1).orElseThrow(
                 () -> new DataNotFoundException(List.of("Status not found")));
 
-        var totalPrice = trip.getPrice() * billCreate.getSeatId().size();
-        var billId = AppUtils.getRandomNumber(12) + LocalDateTime.now().toString();
+        var totalPrice = trip.getPrice() * billCreate.getSeatName().size();
+        var billId = AppUtils.getRandomNumber(12) + LocalDateTime.now();
         String paymentUrl = vnPayService.doPost((long) totalPrice, billId);
         var newBill = Bill.builder()
                 .id(billId)
@@ -82,34 +91,35 @@ public class DefaultBillService implements BillService {
                 .passengerPhone(billCreate.getPassengerPhone())
                 .totalPrice((long) totalPrice)
                 .paymentUrl(paymentUrl)
+                .trip(trip)
                 .build();
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        if (authentication.getPrincipal() instanceof Jwt) {
-            Jwt jwt = (Jwt) authentication.getPrincipal();
+        if (authentication.getPrincipal() instanceof Jwt jwt) {
             String userId = jwt.getClaim("sub");
             newBill.setProfileId(userId);
         }
 
+        kafkaTemplate.send("BillIsBooked", billCreate);
         //Tạo vé
-        var tickets = createTickets(trip, billCreate.getSeatId(), newBill);
+        var tickets = createTickets(trip, billCreate.getSeatName(), newBill);
         newBill.setTickets(tickets);
         billRepository.save(newBill);
         return paymentUrl;
     }
 
-    private void checkSeatAreReserved(List<Long> seatIds, String tripId){
+    private void checkSeatAreReserved(List<String> seatNames, String tripId) {
         List<Ticket> ticketByTrip = ticketRepository.findByTripId(tripId, LocalDateTime.now());
-        Set<Long> seatIdsAreReserved = ticketByTrip.stream()
-                .map(Ticket::getSeatId)
+        Set<String> seatIdsAreReserved = ticketByTrip.stream()
+                .map(Ticket::getSeatName)
                 .collect(Collectors.toSet());
-        for (Long seatId : seatIds) {
+        for (var seatId : seatNames) {
             if (seatIdsAreReserved.contains(seatId)) {
                 throw new InputInvalidException(List.of("Seats are reserved"));
             }
         }
     }
 
-    private Trip checkTripAndGetPrize(String tripId){
+    private Trip checkTripAndGetPrize(String tripId) {
         var trip = tripRepository.findById(tripId);
         return trip.orElseGet(() -> tripRepository.save(
                 tripMapper.toEntity(tripClient.getTrip(tripId, variableConfig.TRIP_API_KEY)
@@ -117,13 +127,12 @@ public class DefaultBillService implements BillService {
         ));
     }
 
-    private Set<Ticket> createTickets(Trip trip, List<Long> seatIds, Bill bill){
-        return seatIds.stream()
-                .map(seatId -> Ticket.builder()
+    private Set<Ticket> createTickets(Trip trip, List<String> seatNames, Bill bill) {
+        return seatNames.stream()
+                .map(seatName -> Ticket.builder()
                         .id(AppUtils.getRandomNumber(15))
                         .bill(bill)
-                        .trip(trip)
-                        .seatId(seatId)
+                        .seatName(seatName)
                         .price(trip.getPrice())
                         .build())
                 .collect(Collectors.toSet());
@@ -144,6 +153,8 @@ public class DefaultBillService implements BillService {
             if (bill.getFailureReason() != null) bill.setFailureReason(null);
             bill.setStatus(billStatus);
             bill.setPaymentAt(dateTime);
+
+//            kafkaTemplate.send("TripIsPaid", tripIsPaid);
             return "Success";
         } else {
             String message = getMessage(responseCode, transactionStatus);
@@ -165,5 +176,63 @@ public class DefaultBillService implements BillService {
             return "Transaction Status invalid";
         }
     }
+
+    @Scheduled(fixedRate = 300000)
+    @Transactional
+    protected void billExpiredTask() {
+        var billIsExpired = billRepository.findByExpireAtAndStatus(LocalDateTime.now());
+        billIsExpired.ifPresent(bills -> {
+            var expiredTrips = bills.stream()
+                    .map(bill -> {
+                        var tripIsExpired = BillIsExpired.builder()
+                                .tripId(bill.getTrip().getId())
+                                .build();
+                        var seatNames = bill.getTickets()
+                                .stream()
+                                .map(Ticket::getSeatName)
+                                .toList();
+                        tripIsExpired.setSeatName(seatNames);
+                        return tripIsExpired;
+                    })
+                    .toList();
+            kafkaTemplate.send("BillIsExpired", expiredTrips);
+        });
+    }
+
+    @Override
+    public ListResponse<BillResponse> getBillByUser() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        Jwt jwt = (Jwt) authentication.getPrincipal();
+        String userId = jwt.getClaim("sub");
+        var result = billRepository.findBillByProfileId(userId);
+        return ListResponse.<BillResponse>builder()
+                .data(result.stream()
+                        .map(billMapper::toDto)
+                        .toList()
+                )
+                .size(result.size())
+                .build();
+    }
+
+    @Override
+    public ListResponse<BillResponse> getBillByPhoneNumber(String phoneNumber) {
+        var result = billRepository.findBillByPhoneNumber(phoneNumber);
+        return ListResponse.<BillResponse>builder()
+                .data(result.stream()
+                        .map(billMapper::toDto)
+                        .toList()
+                )
+                .size(result.size())
+                .build();
+    }
+
+//    @Transactional
+//    @KafkaListener(
+//            topics = "",
+//            id = "billError"
+//    )
+//    protected void billFailed(){
+//
+//    }
 
 }

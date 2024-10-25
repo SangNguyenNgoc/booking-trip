@@ -17,6 +17,7 @@ spring:
     show-sql: true
     properties:
       hibernate:
+        nativeQuery: true
         format_sql: false
         dialect: org.hibernate.dialect.MySQL8Dialect
   application:

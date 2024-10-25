@@ -15,19 +15,11 @@ public class Ticket {
     @Column(name = "ticket_id", nullable = false)
     private String id;
 
-    @Column(name = "seat_id")
-    private Long seatId;
+    @Column(name = "seat_name")
+    private String seatName;
 
     @Column(name = "price")
     private Double price;
-
-    @ManyToOne(fetch = FetchType.LAZY, cascade = CascadeType.PERSIST)
-    @JoinColumn(
-            name = "trip_id",
-            referencedColumnName = "id",
-            nullable = false
-    )
-    private Trip trip;
 
     @ManyToOne(fetch = FetchType.LAZY, cascade = CascadeType.PERSIST)
     @JoinColumn(

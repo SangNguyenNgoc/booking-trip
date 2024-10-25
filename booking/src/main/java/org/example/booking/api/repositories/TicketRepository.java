@@ -13,7 +13,7 @@ import java.util.Locale;
 public interface TicketRepository extends JpaRepository<Ticket, String> {
     @Query("""
             select t from Ticket t
-            where t.trip.id = ?1
+            where t.bill.trip.id = ?1
             and ( (t.bill.expireAt > ?2 and t.bill.status.id = 1) or t.bill.status.id = 2 )
             """)
     List<Ticket> findByTripId(String tripId, LocalDateTime dateTime);

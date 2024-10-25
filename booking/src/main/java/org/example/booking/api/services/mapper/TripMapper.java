@@ -7,7 +7,11 @@ import org.mapstruct.Mapping;
 
 @Mapper(componentModel = "spring")
 public interface TripMapper {
-    @Mapping(source = "schedule.price", target = "price")
+    @Mapping(source = "price", target = "price")
+    @Mapping(source = "schedule.from.name", target = "locationFromName")
+    @Mapping(source = "schedule.to.name", target = "locationToName")
+    @Mapping(source = "schedule.regionTo.name", target = "regionToName")
+    @Mapping(source = "schedule.regionFrom.name", target = "regionFromName")
     Trip toEntity(TripResponse tripResponse);
 
 }

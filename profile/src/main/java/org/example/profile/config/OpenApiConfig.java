@@ -25,8 +25,8 @@ import java.util.List;
         in = SecuritySchemeIn.HEADER,
         flows = @io.swagger.v3.oas.annotations.security.OAuthFlows(
                 authorizationCode = @io.swagger.v3.oas.annotations.security.OAuthFlow(
-                        authorizationUrl = "http://localhost:9000/oauth2/authorize",
-                        tokenUrl = "http://localhost:9000/oauth2/token",
+                        authorizationUrl = "https://account.devsphere.id.vn/oauth2/authorize",
+                        tokenUrl = "https://account.devsphere.id.vn/oauth2/token",
                         scopes = {
                                 @OAuthScope(name = "openid", description = "openid"),
                         },

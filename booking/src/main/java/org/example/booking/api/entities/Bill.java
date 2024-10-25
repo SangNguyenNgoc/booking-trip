@@ -66,4 +66,12 @@ public class Bill {
             referencedColumnName = "id"
     )
     private BillStatus status;
+
+    @ManyToOne(fetch = FetchType.LAZY, cascade = CascadeType.PERSIST)
+    @JoinColumn(
+            name = "trip_id",
+            referencedColumnName = "id",
+            nullable = false
+    )
+    private Trip trip;
 }

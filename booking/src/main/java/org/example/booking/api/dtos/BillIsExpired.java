@@ -11,10 +11,7 @@ import java.util.List;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class BillCreate {
+public class BillIsExpired {
     private String tripId;
-    private List<String> seatName;
-    private String passengerName;
-    private String passengerPhone;
-    private String passengerEmail;
+    private List<String> SeatName;
 }
