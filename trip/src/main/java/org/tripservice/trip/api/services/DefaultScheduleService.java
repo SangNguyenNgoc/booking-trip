@@ -29,6 +29,7 @@ public class DefaultScheduleService implements ScheduleService {
     LocationClient locationClient;
 
     ScheduleRepository scheduleRepository;
+    VehicleTypeRepository vehicleTypeRepository;
 
     VariableConfig variableConfig;
 
@@ -41,6 +42,11 @@ public class DefaultScheduleService implements ScheduleService {
         var schedule = locationClient.getTripSchedule(request, variableConfig.LOCATION_API_KEY).orElseThrow(
                 () -> new DataNotFoundException(List.of("Locations not found"))
         );
+        var vehicleType = vehicleTypeRepository.findById(request.getVehicleTypeId()).orElseThrow(
+                () -> new DataNotFoundException(List.of("Vehicle types not found"))
+        );
+        schedule.setVehicleTypeId(vehicleType.getId());
+        schedule.setVehicleTypeName(vehicleType.getName());
         scheduleRepository.save(schedule);
         return scheduleMapper.toDetail(schedule);
     }

@@ -17,6 +17,5 @@ public class TripInfo {
     private LocalDateTime endTime;
     private Integer seatsAvailable;
     private Long price;
-    private String vehicleTypeName;
 
 }

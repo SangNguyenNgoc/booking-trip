@@ -23,4 +23,6 @@ public class ScheduleDetail {
     private List<ScheduleItemInfo> transits;
     private Double duration;
     private Double distance;
+    private Long vehicleTypeId;
+    private String vehicleTypeName;
 }

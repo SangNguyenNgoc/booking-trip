@@ -22,7 +22,5 @@ public class Trip {
     private Integer seatsAvailable;
     private String licensePlate;
     private Long price;
-    private Long vehicleTypeId;
-    private String vehicleTypeName;
     private String scheduleId;
 }

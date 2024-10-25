@@ -53,8 +53,8 @@ public class DefaultTripService implements TripService {
         validateVehicleAvailability(tripCreate);
 
         Schedule schedule = getScheduleById(tripCreate.getScheduleId());
-        Schedule contrarySchedule = getScheduleById(tripCreate.getContraryScheduleId());
-        VehicleType vehicleType = getVehicleTypeById(tripCreate.getVehicleTypeId());
+        Schedule contrarySchedule = getScheduleByIdAndVehicleType(tripCreate.getContraryScheduleId(), schedule.getVehicleTypeId());
+        VehicleType vehicleType = getVehicleTypeById(schedule.getVehicleTypeId());
 
         LocalDateTime start = LocalDateTime.of(tripCreate.getStartDate(), LocalTime.of(6, 0));
         LocalDateTime end = LocalDateTime.of(tripCreate.getEndDate(), LocalTime.of(23, 0));
@@ -82,14 +82,22 @@ public class DefaultTripService implements TripService {
         }
     }
 
+
     private Trip getTripById(String tripId) {
         return tripRepository.findById(tripId)
                 .orElseThrow(() -> new DataNotFoundException(List.of("Trip not found")));
     }
 
+
     private Schedule getScheduleById(String scheduleId) {
         return scheduleRepository.findById(scheduleId)
                 .orElseThrow(() -> new DataNotFoundException(List.of("Schedule not found")));
+    }
+
+
+    private Schedule getScheduleByIdAndVehicleType(String scheduleId, Long vehicleTypeId) {
+        return scheduleRepository.findByIdAndVehicleTypeId(scheduleId, vehicleTypeId)
+                .orElseThrow(() -> new DataNotFoundException(List.of("Schedule not found with type id")));
     }
 
 
@@ -139,8 +147,6 @@ public class DefaultTripService implements TripService {
                 var trip = Trip.builder()
                         .licensePlate(vehicle)
                         .scheduleId(schedule.getId())
-                        .vehicleTypeId(vehicleType.getId())
-                        .vehicleTypeName(vehicleType.getName())
                         .seatsAvailable(vehicleType.getSeats().size())
                         .price(roundPrice(vehicleType.getPrice() * schedule.getDistance(), 10000))
                         .seatsReserved(new ArrayList<>())
@@ -169,8 +175,6 @@ public class DefaultTripService implements TripService {
                 var contraryTRip = Trip.builder()
                         .licensePlate(vehicle)
                         .scheduleId(contrarySchedule.getId())
-                        .vehicleTypeId(vehicleType.getId())
-                        .vehicleTypeName(vehicleType.getName())
                         .seatsAvailable(vehicleType.getSeats().size())
                         .price(roundPrice(vehicleType.getPrice() * schedule.getDistance(), 10000))
                         .seatsReserved(new ArrayList<>())
@@ -220,11 +224,10 @@ public class DefaultTripService implements TripService {
     public TripDetail getTripDetail(String tripId) {
         var trip = getTripById(tripId);
         var schedule = getScheduleById(trip.getScheduleId());
-        var vehicleType = getVehicleTypeById(trip.getVehicleTypeId());
+        var vehicleType = getVehicleTypeById(schedule.getVehicleTypeId());
         var tripDetail = tripMapper.toDetail(trip);
         var scheduleDetail = scheduleMapper.toDetail(schedule);
         tripDetail.setSchedule(scheduleDetail);
-        tripDetail.setVehicleTypeName(vehicleType.getName());
         tripDetail.setSeats(mapSeat(vehicleType, trip.getSeatsReserved()));
         return tripDetail;
     }
@@ -234,10 +237,8 @@ public class DefaultTripService implements TripService {
     public TripDetail getTripDetailForBooking(String tripId) {
         var trip = getTripById(tripId);
         var schedule = getScheduleById(trip.getScheduleId());
-        var vehicleType = getVehicleTypeById(trip.getVehicleTypeId());
         var tripDetail = tripMapper.toDetail(trip);
         var scheduleDetail = scheduleMapper.toDetail(schedule);
-        tripDetail.setVehicleTypeName(vehicleType.getName());
         tripDetail.setSchedule(scheduleDetail);
         return tripDetail;
     }
@@ -250,6 +251,7 @@ public class DefaultTripService implements TripService {
         List<String> updatedSeats = trip.getSeatsReserved();
         updatedSeats.addAll(bookingEvent.getSeats());
         trip.setSeatsReserved(updatedSeats);
+        trip.setSeatsAvailable( trip.getSeatsAvailable() - bookingEvent.getSeats().size() );
         tripRepository.save(trip);
     }
 
@@ -261,6 +263,7 @@ public class DefaultTripService implements TripService {
         List<String> updatedSeats = trip.getSeatsReserved();
         updatedSeats.removeAll(bookingEvent.getSeats());
         trip.setSeatsReserved(updatedSeats);
+        trip.setSeatsAvailable( trip.getSeatsAvailable() + bookingEvent.getSeats().size() );
         tripRepository.save(trip);
     }
 
