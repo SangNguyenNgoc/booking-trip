@@ -3,6 +3,7 @@ services:
   location:
     environment:
       TAG: location
+      TZ: Asia/Ho_Chi_Minh
     build: ./location
     container_name: location
     restart: on-failure
@@ -14,6 +15,7 @@ services:
   profile:
     environment:
       TAG: profile
+      TZ: Asia/Ho_Chi_Minh
     build: ./profile
     container_name: profile
     restart: on-failure
@@ -25,6 +27,7 @@ services:
   vehicle:
     environment:
       TAG: vehicle
+      TZ: Asia/Ho_Chi_Minh
     build: ./vehicle
     container_name: vehicle
     restart: on-failure
@@ -36,6 +39,7 @@ services:
   trip:
     environment:
       TAG: trip
+      TZ: Asia/Ho_Chi_Minh
     build: ./trip
     container_name: trip
     restart: on-failure
