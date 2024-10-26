@@ -22,7 +22,6 @@ import org.example.booking.utils.exception.DataNotFoundException;
 import org.example.booking.utils.exception.InputInvalidException;
 import org.example.booking.utils.services.AppUtils;
 import org.example.booking.utils.services.VnPayService;
-import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.security.core.Authentication;
@@ -73,11 +72,11 @@ public class DefaultBillService implements BillService {
     public String create(BillCreate billCreate) {
         var trip = checkTripAndGetPrize(billCreate.getTripId());
         //Check ghế đã đặt chưa
-        checkSeatAreReserved(billCreate.getSeatName(), billCreate.getTripId());
+        checkSeatAreReserved(billCreate.getSeats(), billCreate.getTripId());
         BillStatus billStatus = billStatusRepository.findById(1).orElseThrow(
                 () -> new DataNotFoundException(List.of("Status not found")));
 
-        var totalPrice = trip.getPrice() * billCreate.getSeatName().size();
+        var totalPrice = trip.getPrice() * billCreate.getSeats().size();
         var billId = AppUtils.getRandomNumber(12) + LocalDateTime.now();
         String paymentUrl = vnPayService.doPost((long) totalPrice, billId);
         var newBill = Bill.builder()
@@ -99,7 +98,7 @@ public class DefaultBillService implements BillService {
 
         kafkaTemplate.send("BillIsBooked", billCreate);
         //Tạo vé
-        var tickets = createTickets(trip, billCreate.getSeatName(), newBill);
+        var tickets = createTickets(trip, billCreate.getSeats(), newBill);
         newBill.setTickets(tickets);
         billRepository.save(newBill);
         return paymentUrl;
@@ -189,7 +188,7 @@ public class DefaultBillService implements BillService {
                                 .stream()
                                 .map(Ticket::getSeatName)
                                 .toList();
-                        tripIsExpired.setSeatName(seatNames);
+                        tripIsExpired.setSeats(seatNames);
                         return tripIsExpired;
                     })
                     .toList();
@@ -223,14 +222,5 @@ public class DefaultBillService implements BillService {
                 .size(result.size())
                 .build();
     }
-
-//    @Transactional
-//    @KafkaListener(
-//            topics = "",
-//            id = "billError"
-//    )
-//    protected void billFailed(){
-//
-//    }
 
 }

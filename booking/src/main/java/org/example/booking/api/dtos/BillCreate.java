@@ -13,7 +13,7 @@ import java.util.List;
 @AllArgsConstructor
 public class BillCreate {
     private String tripId;
-    private List<String> seatName;
+    private List<String> seats;
     private String passengerName;
     private String passengerPhone;
     private String passengerEmail;

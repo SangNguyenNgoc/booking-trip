@@ -13,5 +13,5 @@ import java.util.List;
 @AllArgsConstructor
 public class BillIsExpired {
     private String tripId;
-    private List<String> SeatName;
+    private List<String> seats;
 }

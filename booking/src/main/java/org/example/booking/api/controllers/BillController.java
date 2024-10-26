@@ -13,7 +13,7 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
-@RequestMapping("/api/v1/bills")
+@RequestMapping("/bills")
 @RequiredArgsConstructor
 public class BillController {
     private final BillService billService;
