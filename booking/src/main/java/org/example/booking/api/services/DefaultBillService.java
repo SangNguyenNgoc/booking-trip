@@ -192,7 +192,7 @@ public class DefaultBillService implements BillService {
                         return tripIsExpired;
                     })
                     .toList();
-            kafkaTemplate.send("BillIsExpired", expiredTrips);
+            if(!expiredTrips.isEmpty()) kafkaTemplate.send("BillIsExpired", expiredTrips);
         });
     }
 
