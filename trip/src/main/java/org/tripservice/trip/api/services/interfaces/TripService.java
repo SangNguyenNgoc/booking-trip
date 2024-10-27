@@ -29,6 +29,6 @@ public interface TripService {
 
     void billIsBooked(BookingEvent bookingEvent);
 
-    void billIsExpired(BookingEvent bookingEvent);
+    void billIsExpired(List<BookingEvent> bookingEvents);
 
 }

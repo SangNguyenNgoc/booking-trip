@@ -4,6 +4,8 @@
     <modules>
       <module fileurl="file://$PROJECT_DIR$/auth-server/auth-server.iml" filepath="$PROJECT_DIR$/auth-server/auth-server.iml" />
       <module fileurl="file://$PROJECT_DIR$/.idea/booking-trip.iml" filepath="$PROJECT_DIR$/.idea/booking-trip.iml" />
+      <module fileurl="file://$PROJECT_DIR$/location/location.iml" filepath="$PROJECT_DIR$/location/location.iml" />
+      <module fileurl="file://$PROJECT_DIR$/vehicle/vehicle.iml" filepath="$PROJECT_DIR$/vehicle/vehicle.iml" />
     </modules>
   </component>
 </project>

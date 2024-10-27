@@ -32,6 +32,8 @@ import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 @Service
@@ -243,6 +245,7 @@ public class DefaultTripService implements TripService {
         return tripDetail;
     }
 
+
     @Override
     @Transactional
     @KafkaListener(topics = "BillIsBooked")
@@ -255,17 +258,36 @@ public class DefaultTripService implements TripService {
         tripRepository.save(trip);
     }
 
+
     @Override
     @Transactional
     @KafkaListener(topics = "BillIsExpired")
-    public void billIsExpired(BookingEvent bookingEvent) {
-        var trip = getTripById(bookingEvent.getTripId());
-        List<String> updatedSeats = trip.getSeatsReserved();
-        updatedSeats.removeAll(bookingEvent.getSeats());
-        trip.setSeatsReserved(updatedSeats);
-        trip.setSeatsAvailable( trip.getSeatsAvailable() + bookingEvent.getSeats().size() );
-        tripRepository.save(trip);
+    public void billIsExpired(List<BookingEvent> bookingEvents) {
+        var tripIds = bookingEvents.stream()
+                .map(BookingEvent::getTripId)
+                .collect(Collectors.toSet());
+        var trips = tripRepository.findAllById(tripIds);
+        var tripMap = groupByTripId(bookingEvents);
+
+        trips.forEach(trip -> {
+            var seats = trip.getSeatsReserved();
+            var seatsRemoved = tripMap.get(trip.getId());
+            seats.removeAll(seatsRemoved);
+            trip.setSeatsReserved(seats);
+            trip.setSeatsAvailable( trip.getSeatsAvailable() + seatsRemoved.size() );
+        });
+        tripRepository.saveAll(trips);
     }
+
+
+    public static Map<String, List<String>> groupByTripId(List<BookingEvent> events) {
+        return events.stream()
+                .collect(Collectors.groupingBy(
+                        BookingEvent::getTripId,
+                        Collectors.flatMapping(event -> event.getSeats().stream(), Collectors.toList())
+                ));
+    }
+
 
     public List<TripDetail.SeatDto> mapSeat(VehicleType vehicleType, List<String> seatsReserved) {
         List<TripDetail.SeatDto> seats = vehicleType.getSeats().stream().map(seat -> {
