@@ -10,7 +10,8 @@ public class AppEndpoint {
             new EndpointPermission("/schedules", HttpMethod.GET),
             new EndpointPermission("/trips", HttpMethod.GET),
             new EndpointPermission("/trips/{id}", HttpMethod.GET),
-            new EndpointPermission("/schedules/popular", HttpMethod.GET)
+            new EndpointPermission("/schedules/popular", HttpMethod.GET),
+            new EndpointPermission("/schedules/group", HttpMethod.GET)
     );
 
     public record EndpointPermission(String path, HttpMethod method) {

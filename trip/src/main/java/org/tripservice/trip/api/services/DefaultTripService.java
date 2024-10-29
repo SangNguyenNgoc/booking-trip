@@ -155,7 +155,7 @@ public class DefaultTripService implements TripService {
                         .licensePlate(vehicle)
                         .scheduleId(schedule.getId())
                         .seatsAvailable(vehicleType.getSeats().stream().filter(seat -> seat.getName() != null).toList().size())
-                        .price(roundPrice(vehicleType.getPrice() * schedule.getDistance(), 10000))
+                        .price(schedule.getPrice())
                         .seatsReserved(new ArrayList<>())
                         .startTime(currentTime)
                         .endTime(arrivalTimeAtB.plusMinutes(delayMinus))
@@ -165,25 +165,24 @@ public class DefaultTripService implements TripService {
 
                 // Thời gian quay lại từ B về A
                 LocalDateTime departureTimeFromB = arrivalTimeAtB;
-                LocalDateTime arrivalTimeAtA = departureTimeFromB.plusMinutes(makeDurationTrip(contrarySchedule.getDuration()));
 
                 var delayMinusB = plusMinus(availableTrip, departureTimeFromB, contrarySchedule.getId());
                 departureTimeFromB = departureTimeFromB.plusMinutes(delayMinusB);
                 // Kiểm tra nếu xe quay về trong khoảng thời gian delay từ 23h đến 5h
                 if (isInDelayPeriod(departureTimeFromB)) {
                     // Delay đến 5h sáng hôm sau
-                    currentTime = departureTimeFromB.getHour() <= 6
-                            ? LocalDateTime.of(arrivalTimeAtA.toLocalDate(), LocalTime.of(6, 0))
-                            : LocalDateTime.of(arrivalTimeAtA.toLocalDate().plusDays(1), LocalTime.of(6, 0));
-                    continue;  // Bắt đầu chuyến tiếp theo sau khi delay
+                    departureTimeFromB = departureTimeFromB.getHour() <= 6
+                            ? LocalDateTime.of(departureTimeFromB.toLocalDate(), LocalTime.of(6, 0))
+                            : LocalDateTime.of(departureTimeFromB.toLocalDate().plusDays(1), LocalTime.of(6, 0));
                 }
+                LocalDateTime arrivalTimeAtA = departureTimeFromB.plusMinutes(makeDurationTrip(contrarySchedule.getDuration()));
 
                 // Thêm chuyến đi B -> A vào danh sách
                 var contraryTRip = Trip.builder()
                         .licensePlate(vehicle)
                         .scheduleId(contrarySchedule.getId())
                         .seatsAvailable(vehicleType.getSeats().stream().filter(seat -> seat.getName() != null).toList().size())
-                        .price(roundPrice(vehicleType.getPrice() * schedule.getDistance(), 10000))
+                        .price(schedule.getPrice())
                         .seatsReserved(new ArrayList<>())
                         .startTime(departureTimeFromB)
                         .endTime(arrivalTimeAtA.plusMinutes(delayMinusB))
@@ -415,8 +414,4 @@ public class DefaultTripService implements TripService {
                 .collect(Collectors.toList());
     }
 
-
-    public Long roundPrice(double price, int roundTo) {
-        return ((long) ((price + roundTo - 1) / roundTo) * roundTo);
-    }
 }

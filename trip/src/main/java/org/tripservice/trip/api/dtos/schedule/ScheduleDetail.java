@@ -24,5 +24,6 @@ public class ScheduleDetail {
     private Double duration;
     private Double distance;
     private Long vehicleTypeId;
+    private Long price;
     private String vehicleTypeName;
 }

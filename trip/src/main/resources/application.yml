@@ -73,3 +73,8 @@ internal-api-key:
   trip: ${TRIP_API_KEY}
   location: ${LOCATION_API_KEY}
   vehicle: ${VEHICLE_API_KEY}
+
+region-popular:
+  - ho-chi-minh
+  - da-lat
+  - da-nang
