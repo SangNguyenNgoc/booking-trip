@@ -24,11 +24,9 @@ public class VehicleTypeController {
 
     @Operation(
             summary = "Get all vehicle type information.",
-            description = "Get all vehicle type information, require 'ROLE_ADMIN'.",
-            security = @SecurityRequirement(name = "Bearer Authentication")
+            description = "Get all vehicle type information."
     )
     @GetMapping
-    @PreAuthorize("hasAnyAuthority('SCOPE_ROLE_ADMIN')")
     public ResponseEntity<ListResponse<VehicleTypeInfo>> getAllVehicleTypes() {
         return ResponseEntity.ok(vehicleTypeService.getAllVehicleTypes());
     }
