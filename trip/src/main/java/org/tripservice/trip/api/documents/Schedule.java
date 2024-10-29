@@ -27,6 +27,7 @@ public class Schedule {
     private List<ScheduleItemInfo> transits;
     private Double duration;
     private Double distance;
+    private Long bookedCount;
     private Long vehicleTypeId;
     private String vehicleTypeName;
 }

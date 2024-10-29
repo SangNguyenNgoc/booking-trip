@@ -5,6 +5,8 @@ import org.tripservice.trip.api.dtos.schedule.ScheduleRequest;
 import org.tripservice.trip.api.dtos.schedule.ScheduleResponse;
 import org.tripservice.trip.utils.dtos.ListResponse;
 
+import java.util.List;
+
 public interface ScheduleService {
 
     ScheduleDetail createSchedule(ScheduleRequest request);
@@ -13,5 +15,5 @@ public interface ScheduleService {
 
     ScheduleDetail updateSchedule(String id, ScheduleRequest request);
 
-
+    List<List<ScheduleResponse>> getPopularSchedule();
 }

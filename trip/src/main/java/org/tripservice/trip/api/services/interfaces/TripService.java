@@ -21,7 +21,14 @@ public interface TripService {
     List<Trip> scheduleTrips(Schedule schedule, Schedule contrarySchedule, VehicleType vehicleType, List<Trip> availableTrips,
                              List<String> vehicles, LocalDateTime start, LocalDateTime end);
 
-    ListResponse<ScheduleResponse> getSchedulesIncludeTripsByFromAndTo(String from, String to, LocalDate date);
+    ListResponse<ScheduleResponse> getSchedulesIncludeTripsByFromAndTo(
+            String from, String to, LocalDate fromDate,
+            Integer ticketCount, String timeInDay, Long vehicleType
+    );
+
+    List<ScheduleResponse> getSchedulesIncludeTripsByFromAndTo(
+            String from, String to, LocalDate date, Long vehicleTypeId
+    );
 
     TripDetail getTripDetail(String tripId);
 

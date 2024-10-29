@@ -70,7 +70,7 @@ public class DefaultLocationService implements LocationService {
         location.setRegion(region);
         var geocodingResult = geocodingClient.getCoordinates(
                 locationCreate.getAddress(),
-                variable.LOCATION_API_KEY
+                variable.GEOCODING_API_KEY
         ).getItems().get(0);
         location.setLatitude(geocodingResult.getPosition().getLat());
         location.setLongitude(geocodingResult.getPosition().getLng());

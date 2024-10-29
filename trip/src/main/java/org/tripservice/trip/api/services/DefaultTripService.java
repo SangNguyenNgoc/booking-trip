@@ -4,6 +4,10 @@ import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import org.springframework.data.domain.Sort;
+import org.springframework.data.mongodb.core.MongoTemplate;
+import org.springframework.data.mongodb.core.query.Criteria;
+import org.springframework.data.mongodb.core.query.Query;
+import org.springframework.data.mongodb.core.query.Update;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Service;
@@ -49,6 +53,7 @@ public class DefaultTripService implements TripService {
     ScheduleMapper scheduleMapper;
 
     KafkaTemplate<String, Object> kafkaTemplate;
+    MongoTemplate mongoTemplate;
 
     @Override
     public List<TripInfo> createTrip(TripCreate tripCreate) {
@@ -149,7 +154,7 @@ public class DefaultTripService implements TripService {
                 var trip = Trip.builder()
                         .licensePlate(vehicle)
                         .scheduleId(schedule.getId())
-                        .seatsAvailable(vehicleType.getSeats().size())
+                        .seatsAvailable(vehicleType.getSeats().stream().filter(seat -> seat.getName() != null).toList().size())
                         .price(roundPrice(vehicleType.getPrice() * schedule.getDistance(), 10000))
                         .seatsReserved(new ArrayList<>())
                         .startTime(currentTime)
@@ -177,7 +182,7 @@ public class DefaultTripService implements TripService {
                 var contraryTRip = Trip.builder()
                         .licensePlate(vehicle)
                         .scheduleId(contrarySchedule.getId())
-                        .seatsAvailable(vehicleType.getSeats().size())
+                        .seatsAvailable(vehicleType.getSeats().stream().filter(seat -> seat.getName() != null).toList().size())
                         .price(roundPrice(vehicleType.getPrice() * schedule.getDistance(), 10000))
                         .seatsReserved(new ArrayList<>())
                         .startTime(departureTimeFromB)
@@ -195,8 +200,73 @@ public class DefaultTripService implements TripService {
 
 
     @Override
-    public ListResponse<ScheduleResponse> getSchedulesIncludeTripsByFromAndTo(String from, String to, LocalDate date) {
-        var schedules = scheduleRepository.findByRegionFromAndRegionTo(from, to);
+    public ListResponse<ScheduleResponse> getSchedulesIncludeTripsByFromAndTo(
+            String from, String to, LocalDate fromDate,
+            Integer ticketCount, String timeInDay, Long vehicleType
+    ) {
+        var scheduleResponses = getSchedulesIncludeTripsByFromAndTo(from, to, fromDate, vehicleType);
+        if(ticketCount != null) {
+            scheduleResponses.forEach(scheduleResponse -> {
+                var trips = scheduleResponse.getTrips().stream()
+                        .filter(tripInfo -> tripInfo.getSeatsAvailable() > ticketCount)
+                        .collect(Collectors.toList());
+                scheduleResponse.setTrips(trips);
+            });
+        }
+        if (timeInDay != null) {
+            scheduleResponses.forEach(scheduleResponse -> {
+                var trips = filterByTimeSlot(timeInDay, scheduleResponse.getTrips());
+                scheduleResponse.setTrips(trips);
+            });
+        }
+
+        return ListResponse.<ScheduleResponse>builder()
+                .size(scheduleResponses.size())
+                .data(scheduleResponses)
+                .build();
+    }
+
+
+    public List<TripInfo> filterByTimeSlot(String period, List<TripInfo> trips) {
+        LocalTime start = null;
+        LocalTime end = switch (period) {
+            case "midnight" -> {
+                start = LocalTime.of(0, 0);
+                yield LocalTime.of(6, 0);
+            }
+            case "morning" -> {
+                start = LocalTime.of(6, 0);
+                yield LocalTime.of(12, 0);
+            }
+            case "afternoon" -> {
+                start = LocalTime.of(12, 0);
+                yield LocalTime.of(18, 0);
+            }
+            case "evening" -> {
+                start = LocalTime.of(18, 0);
+                yield LocalTime.of(23, 59, 59);
+            }
+            default -> throw new InputInvalidException(List.of("Time in day not valid"));
+        };
+
+        List<TripInfo> result = new ArrayList<>();
+        for (TripInfo trip : trips) {
+            if (!trip.getStartTime().toLocalTime().isBefore(start) && trip.getStartTime().toLocalTime().isBefore(end)) {
+                result.add(trip);
+            }
+        }
+        return result;
+    }
+
+
+    @Override
+    public List<ScheduleResponse> getSchedulesIncludeTripsByFromAndTo(String from, String to, LocalDate date, Long vehicleTypeId) {
+        List<Schedule> schedules;
+        if (vehicleTypeId != null) {
+            schedules = scheduleRepository.findByRegionFromAndRegionTo(from, to, vehicleTypeId);
+        } else {
+            schedules = scheduleRepository.findByRegionFromAndRegionTo(from, to);
+        }
         Sort sort = Sort.by(Sort.Order.asc("startTime"));
 
         var trips = tripRepository.findTripsBySchedulesAndStartTime(
@@ -205,6 +275,7 @@ public class DefaultTripService implements TripService {
                 date.plusDays(1),
                 sort
         );
+
         var scheduleResponses = schedules.stream()
                 .map(scheduleMapper::toResponse)
                 .collect(Collectors.toList());
@@ -215,12 +286,8 @@ public class DefaultTripService implements TripService {
                     .collect(Collectors.toList());
             scheduleResponse.setTrips(tripInfoList);
         });
-        return ListResponse.<ScheduleResponse>builder()
-                .size(scheduleResponses.size())
-                .data(scheduleResponses)
-                .build();
+        return scheduleResponses;
     }
-
 
     @Override
     public TripDetail getTripDetail(String tripId) {
@@ -250,12 +317,16 @@ public class DefaultTripService implements TripService {
     @Transactional
     @KafkaListener(topics = "BillIsBooked")
     public void billIsBooked(BookingEvent bookingEvent) {
+        Query tripQuery = new Query(Criteria.where("_id").is(bookingEvent.getTripId()));
+        Update tripUpdate = new Update()
+                .push("seatsReserved").each(bookingEvent.getSeats())
+                .inc("seatsAvailable", -bookingEvent.getSeats().size());
+        mongoTemplate.updateFirst(tripQuery, tripUpdate, Trip.class);
+
         var trip = getTripById(bookingEvent.getTripId());
-        List<String> updatedSeats = trip.getSeatsReserved();
-        updatedSeats.addAll(bookingEvent.getSeats());
-        trip.setSeatsReserved(updatedSeats);
-        trip.setSeatsAvailable( trip.getSeatsAvailable() - bookingEvent.getSeats().size() );
-        tripRepository.save(trip);
+        Query scheduleQuery = new Query(Criteria.where("_id").is(trip.getScheduleId()));
+        Update scheduleUpdate = new Update().inc("bookedCount", bookingEvent.getSeats().size());
+        mongoTemplate.updateFirst(scheduleQuery, scheduleUpdate, Schedule.class);
     }
 
 

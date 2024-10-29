@@ -43,15 +43,21 @@ public class TripController {
     public ResponseEntity<ListResponse<ScheduleResponse>> getTripsByFromAndToInDate(
             @RequestParam(value = "from") String from,
             @RequestParam(value = "to") String to,
-            @RequestParam(value = "date") LocalDate date
+            @RequestParam(value = "fromDate") LocalDate fromDate,
+            @RequestParam(value = "ticketCount") Integer ticketCount,
+            @RequestParam(value = "timeInDay", required = false) String timeInDay,
+            @RequestParam(value = "vehicleType", required = false) Long vehicleType
     ) {
-        return ResponseEntity.ok(tripService.getSchedulesIncludeTripsByFromAndTo(from, to, date));
+        return ResponseEntity.ok(tripService.getSchedulesIncludeTripsByFromAndTo(
+                from, to, fromDate,
+                ticketCount, timeInDay, vehicleType
+        ));
     }
 
 
     @Operation(
-            summary = "Get trips detail.",
-            description = "Get trips detail."
+            summary = "Get trip detail.",
+            description = "Get trip detail."
     )
     @GetMapping("/{id}")
     public ResponseEntity<TripDetail> getTripsByFromAndToInDate(

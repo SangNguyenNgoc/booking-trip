@@ -12,6 +12,8 @@ import org.tripservice.trip.api.dtos.schedule.ScheduleResponse;
 import org.tripservice.trip.api.services.interfaces.ScheduleService;
 import org.tripservice.trip.utils.dtos.ListResponse;
 
+import java.util.List;
+
 @RestController
 @RequestMapping("/schedules")
 @RequiredArgsConstructor
@@ -57,4 +59,15 @@ public class ScheduleController {
     ) {
         return ResponseEntity.ok(scheduleService.updateSchedule(id, schedule));
     }
+
+
+    @Operation(
+            summary = "Get popular schedules.",
+            description = "Get popular schedule."
+    )
+    @GetMapping("/popular")
+    public ResponseEntity<List<List<ScheduleResponse>>> getPopularSchedules() {
+        return ResponseEntity.ok(scheduleService.getPopularSchedule());
+    }
+
 }
