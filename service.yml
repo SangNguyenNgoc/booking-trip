@@ -59,3 +59,15 @@ services:
       - "8086:8086"
     env_file:
       - .env
+
+  notification:
+    environment:
+      TAG: notification
+      TZ: Asia/Ho_Chi_Minh
+    build: ./notification
+    container_name: notification
+    restart: on-failure
+    ports:
+      - "8087:8087"
+    env_file:
+      - .env
