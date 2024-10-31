@@ -13,6 +13,6 @@ import java.io.Serializable;
 @AllArgsConstructor
 public class Account implements Serializable {
     private String email;
-    private String userName;
+    private String fullName;
     private String verifyToken;
 }
