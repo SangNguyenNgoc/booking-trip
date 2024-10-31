@@ -36,7 +36,7 @@ public class DefaultNotificationService {
         try {
             Context context = new Context();
             context.setVariables(Map.of(
-                    "name", user.getUserName(),
+                    "name", user.getFullName(),
                     "url", baseUri + verifyUrl + "?t=" + user.getVerifyToken()
             ));
             String text = templateEngine.process("mail", context);
