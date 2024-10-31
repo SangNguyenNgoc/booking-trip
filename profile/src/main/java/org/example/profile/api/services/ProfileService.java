@@ -88,6 +88,7 @@ class ProfileServiceImpl implements ProfileService{
                 .password(AppUtils.generatePassword())
                 .username(registerRequest.getEmail())
                 .RoleId(3)
+                .fullName(registerRequest.getFullname())
                 .build();
         kafkaTemplate.send("createAccount", newUser);
         return "success";

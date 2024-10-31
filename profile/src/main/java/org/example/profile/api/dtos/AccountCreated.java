@@ -14,4 +14,5 @@ public class AccountCreated implements Serializable {
     private String username;
     private String password;
     private Integer RoleId;
+    private String fullName;
 }

@@ -34,7 +34,8 @@ spring:
       auto-offset-reset: earliest
 url:
   base-url: ${SSL}://${DOMAIN}/api/v1
-  verify-url: "/verify"
+  verify-url: /auth/verify
+  home-page-url: ${SSL}://${FE_DOMAIN}
 
 eureka:
   instance:
