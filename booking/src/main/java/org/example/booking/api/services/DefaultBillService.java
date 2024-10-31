@@ -178,6 +178,8 @@ public class DefaultBillService implements BillService {
     @Transactional
     protected void billExpiredTask() {
         var billIsExpired = billRepository.findByExpireAtAndStatus(LocalDateTime.now());
+        var billStatus = billStatusRepository.findById(3).orElseThrow(
+                ()->new DataNotFoundException(List.of("Not found Status")) );
         billIsExpired.ifPresent(bills -> {
             var expiredTrips = bills.stream()
                     .map(bill -> {
@@ -189,6 +191,7 @@ public class DefaultBillService implements BillService {
                                 .map(Ticket::getSeatName)
                                 .toList();
                         tripIsExpired.setSeats(seatNames);
+                        bill.setStatus(billStatus);
                         return tripIsExpired;
                     })
                     .toList();
