@@ -36,7 +36,7 @@ spring:
 url:
   base-url: ${SSL}://${DOMAIN}
   verify-url: /auth/verify
-  home-page-url: ${SSL}://${FE_DOMAIN}
+  auth-url: ${SSL}://${AUTH_DOMAIN}
 
 eureka:
   instance:

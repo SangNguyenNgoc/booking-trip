@@ -78,7 +78,7 @@ management:
         include: info, health
 
 url:
-  base-url: ${SSL}://${DOMAIN}/api/v1
+  base-url: ${SSL}://${DOMAIN}
   auth-url: ${AUTH_DOMAIN}
 
 springdoc:

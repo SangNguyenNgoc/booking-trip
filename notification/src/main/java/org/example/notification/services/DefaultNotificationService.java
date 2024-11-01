@@ -22,8 +22,8 @@ public class DefaultNotificationService {
     private final TemplateEngine templateEngine;
     private final KafkaTemplate<String, Object> kafkaTemplate;
 
-    @Value("${url.base-url}")
-    private String baseUri;
+    @Value("${url.auth-url}")
+    private String authUri;
 
     @Value("${url.verify-url}")
     private String verifyUrl;
@@ -34,7 +34,7 @@ public class DefaultNotificationService {
             Context context = new Context();
             context.setVariables(Map.of(
                     "name", user.getFullName(),
-                    "url", baseUri + verifyUrl + "?t=" + user.getVerifyToken()
+                    "url", authUri + verifyUrl + "?t=" + user.getVerifyToken()
             ));
             String text = templateEngine.process("mail", context);
             mailService.sendEmailHtml(user.getEmail(), "Xác minh địa chỉ email của bạn", text);
