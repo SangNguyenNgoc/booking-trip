@@ -32,8 +32,9 @@ spring:
     consumer:
       value-deserializer: org.apache.kafka.common.serialization.ByteArrayDeserializer
       auto-offset-reset: earliest
+      group-id: notification-consumer-group
 url:
-  base-url: ${SSL}://${DOMAIN}/api/v1
+  base-url: ${SSL}://${DOMAIN}
   verify-url: /auth/verify
   home-page-url: ${SSL}://${FE_DOMAIN}
 

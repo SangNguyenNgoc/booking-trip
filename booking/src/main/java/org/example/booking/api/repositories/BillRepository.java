@@ -14,7 +14,9 @@ public interface BillRepository extends JpaRepository<Bill, String> {
     @Query("select b from Bill b where b.id = ?1 and b.status.id = ?2")
     Optional<Bill> findByIdAndStatusId(String id, Integer id1);
 
-    @Query("select b from Bill b where b.expireAt < ?1 and b.status.id != 2")
+    @Query("select b from Bill b where " +
+            "(b.expireAt < ?1 and b.status.id = 1) " +
+            "or b.failure = true ")
     Optional<List<Bill>> findByExpireAtAndStatus(LocalDateTime toNow);
 
     @Query("select b from Bill b " +

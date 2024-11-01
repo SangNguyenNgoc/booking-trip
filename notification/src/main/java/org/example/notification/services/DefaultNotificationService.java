@@ -28,10 +28,7 @@ public class DefaultNotificationService {
     @Value("${url.verify-url}")
     private String verifyUrl;
 
-    @KafkaListener(
-            topics = "VerifyAccount",
-            id = "VerifyAccountGroup"
-    )
+    @KafkaListener(topics = "VerifyAccount")
     public void sendToVerify(Account user) {
         try {
             Context context = new Context();
@@ -41,7 +38,7 @@ public class DefaultNotificationService {
             ));
             String text = templateEngine.process("mail", context);
             mailService.sendEmailHtml(user.getEmail(), "Xác minh địa chỉ email của bạn", text);
-        } catch (MessagingException | UnsupportedEncodingException e) {
+        } catch (Exception e) {
             log.error(e.getMessage());
         }
     }
