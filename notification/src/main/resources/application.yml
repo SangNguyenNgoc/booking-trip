@@ -34,7 +34,7 @@ spring:
       auto-offset-reset: earliest
       group-id: notification-consumer-group
 url:
-  base-url: ${SSL}://${DOMAIN}
+  base-url: ${SSL}://${DOMAIN}/api/v1
   verify-url: /auth/verify
   auth-url: ${SSL}://${AUTH_DOMAIN}
 
