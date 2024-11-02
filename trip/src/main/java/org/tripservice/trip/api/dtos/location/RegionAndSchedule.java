@@ -1,12 +1,9 @@
 package org.tripservice.trip.api.dtos.location;
 
-import com.fasterxml.jackson.annotation.JsonInclude;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import org.tripservice.trip.api.dtos.schedule.ScheduleResponse;
-import org.tripservice.trip.api.dtos.trip.TripInfo;
 
 import java.util.List;
 

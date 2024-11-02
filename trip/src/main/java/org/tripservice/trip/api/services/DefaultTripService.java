@@ -31,13 +31,13 @@ import org.tripservice.trip.utils.dtos.ListResponse;
 import org.tripservice.trip.utils.exception.DataNotFoundException;
 import org.tripservice.trip.utils.exception.InputInvalidException;
 
+import java.time.Duration;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.stream.Collectors;
 
 @Service
@@ -54,6 +54,14 @@ public class DefaultTripService implements TripService {
 
     KafkaTemplate<String, Object> kafkaTemplate;
     MongoTemplate mongoTemplate;
+
+    public static Map<String, List<String>> groupByTripId(List<BookingEvent> events) {
+        return events.stream()
+                .collect(Collectors.groupingBy(
+                        BookingEvent::getTripId,
+                        Collectors.flatMapping(event -> event.getSeats().stream(), Collectors.toList())
+                ));
+    }
 
     @Override
     public List<TripInfo> createTrip(TripCreate tripCreate) {
@@ -79,7 +87,6 @@ public class DefaultTripService implements TripService {
                 .collect(Collectors.toList());
     }
 
-
     private void validateVehicleAvailability(TripCreate tripCreate) {
         var licensePlateList = tripRepository.checkVehicleInTime(
                 tripCreate.getVehicles(), tripCreate.getStartDate(), tripCreate.getEndDate()
@@ -89,30 +96,25 @@ public class DefaultTripService implements TripService {
         }
     }
 
-
     private Trip getTripById(String tripId) {
         return tripRepository.findById(tripId)
                 .orElseThrow(() -> new DataNotFoundException(List.of("Trip not found")));
     }
-
 
     private Schedule getScheduleById(String scheduleId) {
         return scheduleRepository.findById(scheduleId)
                 .orElseThrow(() -> new DataNotFoundException(List.of("Schedule not found")));
     }
 
-
     private Schedule getScheduleByIdAndVehicleType(String scheduleId, Long vehicleTypeId) {
         return scheduleRepository.findByIdAndVehicleTypeId(scheduleId, vehicleTypeId)
                 .orElseThrow(() -> new DataNotFoundException(List.of("Schedule not found with type id")));
     }
 
-
     private VehicleType getVehicleTypeById(Long vehicleTypeId) {
         return vehicleTypeRepository.findById(vehicleTypeId)
                 .orElseThrow(() -> new DataNotFoundException(List.of("Vehicle type not found")));
     }
-
 
     private void notifyVehicleAssignment(TripCreate tripCreate, LocalDateTime start, LocalDateTime end, Schedule schedule) {
         String route = schedule.getRegionFrom().getName() + " - " + schedule.getRegionTo().getName();
@@ -120,7 +122,6 @@ public class DefaultTripService implements TripService {
                 tripCreate.getVehicles(), start.toLocalDate(), end.toLocalDate(), route
         ));
     }
-
 
     @Override
     public List<Trip> scheduleTrips(
@@ -135,7 +136,7 @@ public class DefaultTripService implements TripService {
                 // Thời gian đến điểm B
                 LocalDateTime arrivalTimeAtB = currentTime.plusMinutes(makeDurationTrip(schedule.getDuration()));
 
-                if (arrivalTimeAtB.isAfter(end) || arrivalTimeAtB.plusMinutes(makeDurationTrip(contrarySchedule.getDuration())).isAfter(end) ) {
+                if (arrivalTimeAtB.isAfter(end) || arrivalTimeAtB.plusMinutes(makeDurationTrip(contrarySchedule.getDuration())).isAfter(end)) {
                     break;
                 }
 
@@ -197,19 +198,21 @@ public class DefaultTripService implements TripService {
         return trips;
     }
 
-
     @Override
     public ListResponse<ScheduleResponse> getSchedulesIncludeTripsByFromAndTo(
             String from, String to, LocalDate fromDate,
             Integer ticketCount, String timeInDay, Long vehicleType
     ) {
         var scheduleResponses = getSchedulesIncludeTripsByFromAndTo(from, to, fromDate, vehicleType);
-        if(ticketCount != null) {
+        if (ticketCount != null) {
             scheduleResponses.forEach(scheduleResponse -> {
                 var trips = scheduleResponse.getTrips().stream()
                         .filter(tripInfo -> tripInfo.getSeatsAvailable() > ticketCount)
                         .collect(Collectors.toList());
                 scheduleResponse.setTrips(trips);
+                Duration duration = Duration.between(trips.get(0).getStartTime(), trips.get(0).getEndTime());
+                double minutes = duration.toMinutes();
+                scheduleResponse.setDuration(minutes);
             });
         }
         if (timeInDay != null) {
@@ -224,7 +227,6 @@ public class DefaultTripService implements TripService {
                 .data(scheduleResponses)
                 .build();
     }
-
 
     public List<TripInfo> filterByTimeSlot(String period, List<TripInfo> trips) {
         LocalTime start = null;
@@ -256,7 +258,6 @@ public class DefaultTripService implements TripService {
         }
         return result;
     }
-
 
     @Override
     public List<ScheduleResponse> getSchedulesIncludeTripsByFromAndTo(String from, String to, LocalDate date, Long vehicleTypeId) {
@@ -300,7 +301,6 @@ public class DefaultTripService implements TripService {
         return tripDetail;
     }
 
-
     @Override
     public TripDetail getTripDetailForBooking(String tripId) {
         var trip = getTripById(tripId);
@@ -310,7 +310,6 @@ public class DefaultTripService implements TripService {
         tripDetail.setSchedule(scheduleDetail);
         return tripDetail;
     }
-
 
     @Override
     @Transactional
@@ -328,7 +327,6 @@ public class DefaultTripService implements TripService {
         mongoTemplate.updateFirst(scheduleQuery, scheduleUpdate, Schedule.class);
     }
 
-
     @Override
     @Transactional
     @KafkaListener(topics = "BillIsExpired")
@@ -344,20 +342,10 @@ public class DefaultTripService implements TripService {
             var seatsRemoved = tripMap.get(trip.getId());
             seats.removeAll(seatsRemoved);
             trip.setSeatsReserved(seats);
-            trip.setSeatsAvailable( trip.getSeatsAvailable() + seatsRemoved.size() );
+            trip.setSeatsAvailable(trip.getSeatsAvailable() + seatsRemoved.size());
         });
         tripRepository.saveAll(trips);
     }
-
-
-    public static Map<String, List<String>> groupByTripId(List<BookingEvent> events) {
-        return events.stream()
-                .collect(Collectors.groupingBy(
-                        BookingEvent::getTripId,
-                        Collectors.flatMapping(event -> event.getSeats().stream(), Collectors.toList())
-                ));
-    }
-
 
     public List<TripDetail.SeatDto> mapSeat(VehicleType vehicleType, List<String> seatsReserved) {
         List<TripDetail.SeatDto> seats = vehicleType.getSeats().stream().map(seat -> {
@@ -406,11 +394,11 @@ public class DefaultTripService implements TripService {
 
     public List<AssignSchedule> createAssignSchedule(List<String> licensePlate, LocalDate startDate, LocalDate endDate, String route) {
         return licensePlate.stream().map(item -> AssignSchedule.builder()
-                .licensePlate(item)
-                .startDate(startDate)
-                .endDate(endDate)
-                .route(route)
-                .build())
+                        .licensePlate(item)
+                        .startDate(startDate)
+                        .endDate(endDate)
+                        .route(route)
+                        .build())
                 .collect(Collectors.toList());
     }
 

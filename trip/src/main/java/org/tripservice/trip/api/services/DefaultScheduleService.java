@@ -56,10 +56,10 @@ public class DefaultScheduleService implements ScheduleService {
         );
         double roundedUp = roundedUp10(schedule.getDuration());
         schedule.setDuration(roundedUp);
-        for(var item : schedule.getPickUps()) {
+        for (var item : schedule.getPickUps()) {
             item.setDurationToLocation(roundedUp10(item.getDurationToLocation()));
         }
-        for(var item : schedule.getTransits()) {
+        for (var item : schedule.getTransits()) {
             item.setDurationToLocation(roundedUp10(item.getDurationToLocation()));
         }
         var vehicleType = vehicleTypeRepository.findById(request.getVehicleTypeId()).orElseThrow(

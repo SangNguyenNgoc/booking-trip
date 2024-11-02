@@ -6,7 +6,6 @@ import org.springframework.data.mongodb.repository.Query;
 import org.tripservice.trip.api.documents.Trip;
 
 import java.time.LocalDate;
-import java.time.LocalDateTime;
 import java.util.List;
 
 public interface TripRepository extends MongoRepository<Trip, String> {
