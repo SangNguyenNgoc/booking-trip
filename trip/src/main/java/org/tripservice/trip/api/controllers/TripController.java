@@ -46,11 +46,12 @@ public class TripController {
             @RequestParam(value = "fromDate") LocalDate fromDate,
             @RequestParam(value = "ticketCount") Integer ticketCount,
             @RequestParam(value = "timeInDay", required = false) String timeInDay,
-            @RequestParam(value = "vehicleType", required = false) Long vehicleType
+            @RequestParam(value = "vehicleType", required = false) Long vehicleType,
+            @RequestParam(value = "floorNo", required = false) Integer floorNo
     ) {
         return ResponseEntity.ok(tripService.getSchedulesIncludeTripsByFromAndTo(
                 from, to, fromDate,
-                ticketCount, timeInDay, vehicleType
+                ticketCount, timeInDay, vehicleType, floorNo
         ));
     }
 

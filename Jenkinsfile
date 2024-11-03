@@ -4,73 +4,30 @@ pipeline {
     environment {
         DEPLOY_SERVER = '167.71.192.132'
         DEPLOY_PATH = '/home/work'
-        SSH_CREDENTIALS_ID = 'booking-trip-service-key' // Sử dụng ID từ Jenkins Credentials
+        SSH_CREDENTIALS_ID = 'booking-trip-service-key'
         GITHUB_REPO = 'https://github.com/SangNguyenNgoc/booking-trip.git'
     }
 
     stages {
-        stage('SSH to Deploy Server and Setup') {
+        stage('Deploy Application') {
             steps {
                 sshagent([SSH_CREDENTIALS_ID]) {
                     sh """
                         ssh -o StrictHostKeyChecking=no root@${DEPLOY_SERVER} '
-                            # 1: Truy cập vào thư mục làm việc
+                            # 1: Truy cập vào thư mục làm việc và xóa clone cũ nếu có
                             cd ${DEPLOY_PATH} &&
+                            rm -rf cloned_repo &&
                             
-                            # Xóa thư mục clone cũ nếu tồn tại để đảm bảo clean build
-                            rm -rf cloned_repo
-                        '
-                    """
-                }
-            }
-        }
-
-        stage('Clone Source Code') {
-            steps {
-                sshagent([SSH_CREDENTIALS_ID]) {
-                    sh """
-                        ssh -o StrictHostKeyChecking=no root@${DEPLOY_SERVER} '
                             # 2: Clone mã nguồn từ GitHub
-                            git clone ${GITHUB_REPO} ${DEPLOY_PATH}/cloned_repo
-                        '
-                    """
-                }
-            }
-        }
-
-        stage('Copy .env File') {
-            steps {
-                sshagent([SSH_CREDENTIALS_ID]) {
-                    sh """
-                        ssh -o StrictHostKeyChecking=no root@${DEPLOY_SERVER} '
+                            git clone ${GITHUB_REPO} cloned_repo &&
+                            
                             # 3: Copy file .env vào thư mục vừa clone
-                            cd ${DEPLOY_PATH}/cloned_repo &&
-                            cp ../.env .
-                        '
-                    """
-                }
-            }
-        }
-
-        stage('Build and Deploy with Docker Compose') {
-            steps {
-                sshagent([SSH_CREDENTIALS_ID]) {
-                    sh """
-                        ssh -o StrictHostKeyChecking=no root@${DEPLOY_SERVER} '
+                            cd cloned_repo &&
+                            cp ../.env . &&
+                            
                             # 4: Chạy docker-compose để build và deploy
-                            cd ${DEPLOY_PATH}/cloned_repo &&
-                            docker compose -f service.yml up -d --build
-                        '
-                    """
-                }
-            }
-        }
-
-        stage('Clean Up') {
-            steps {
-                sshagent([SSH_CREDENTIALS_ID]) {
-                    sh """
-                        ssh -o StrictHostKeyChecking=no root@${DEPLOY_SERVER} '
+                            docker compose -f service.yml up -d --build &&
+                            
                             # 5: Xóa thư mục clone sau khi deploy xong
                             cd ${DEPLOY_PATH} &&
                             rm -rf cloned_repo

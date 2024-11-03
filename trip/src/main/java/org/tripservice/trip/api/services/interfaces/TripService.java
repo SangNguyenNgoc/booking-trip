@@ -23,7 +23,7 @@ public interface TripService {
 
     ListResponse<ScheduleResponse> getSchedulesIncludeTripsByFromAndTo(
             String from, String to, LocalDate fromDate,
-            Integer ticketCount, String timeInDay, Long vehicleType
+            Integer ticketCount, String timeInDay, Long vehicleType, Integer floorNo
     );
 
     List<ScheduleResponse> getSchedulesIncludeTripsByFromAndTo(

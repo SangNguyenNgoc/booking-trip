@@ -128,6 +128,12 @@ public class DefaultTripService implements TripService {
             Schedule schedule, Schedule contrarySchedule, VehicleType vehicleType,
             List<Trip> availableTrip, List<String> vehicles, LocalDateTime start, LocalDateTime end
     ) {
+
+        var seats = vehicleType.getSeats();
+        var seatsWithNames = seats.stream().filter(seat -> seat.getName() != null).toList();
+        var firstFloorSeats = seats.stream().filter(seat -> seat.getFloorNo() == 1 && seat.getName() != null).toList();
+        var secondFloorSeats = seats.stream().filter(seat -> seat.getFloorNo() == 2 && seat.getName() != null).toList();
+
         List<Trip> trips = new ArrayList<>();
         // Vòng lặp qua từng xe
         for (var vehicle : vehicles) {
@@ -155,8 +161,11 @@ public class DefaultTripService implements TripService {
                 var trip = Trip.builder()
                         .licensePlate(vehicle)
                         .scheduleId(schedule.getId())
-                        .seatsAvailable(vehicleType.getSeats().stream().filter(seat -> seat.getName() != null).toList().size())
+                        .seatsAvailable(seatsWithNames.size())
                         .price(schedule.getPrice())
+                        .totalSeats(seatsWithNames.size())
+                        .firstFloorSeats(firstFloorSeats.size())
+                        .secondFloorSeats(secondFloorSeats.size())
                         .seatsReserved(new ArrayList<>())
                         .startTime(currentTime)
                         .endTime(arrivalTimeAtB.plusMinutes(delayMinus))
@@ -182,8 +191,11 @@ public class DefaultTripService implements TripService {
                 var contraryTRip = Trip.builder()
                         .licensePlate(vehicle)
                         .scheduleId(contrarySchedule.getId())
-                        .seatsAvailable(vehicleType.getSeats().stream().filter(seat -> seat.getName() != null).toList().size())
+                        .seatsAvailable(seatsWithNames.size())
                         .price(schedule.getPrice())
+                        .totalSeats(seatsWithNames.size())
+                        .firstFloorSeats(firstFloorSeats.size())
+                        .secondFloorSeats(secondFloorSeats.size())
                         .seatsReserved(new ArrayList<>())
                         .startTime(departureTimeFromB)
                         .endTime(arrivalTimeAtA.plusMinutes(delayMinusB))
@@ -201,26 +213,48 @@ public class DefaultTripService implements TripService {
     @Override
     public ListResponse<ScheduleResponse> getSchedulesIncludeTripsByFromAndTo(
             String from, String to, LocalDate fromDate,
-            Integer ticketCount, String timeInDay, Long vehicleType
+            Integer ticketCount, String timeInDay, Long vehicleType, Integer floorNo
     ) {
-        var scheduleResponses = getSchedulesIncludeTripsByFromAndTo(from, to, fromDate, vehicleType);
-        if (ticketCount != null) {
-            scheduleResponses.forEach(scheduleResponse -> {
-                var trips = scheduleResponse.getTrips().stream()
-                        .filter(tripInfo -> tripInfo.getSeatsAvailable() > ticketCount)
-                        .collect(Collectors.toList());
-                scheduleResponse.setTrips(trips);
-                Duration duration = Duration.between(trips.get(0).getStartTime(), trips.get(0).getEndTime());
+        List<Schedule> schedules;
+        if (vehicleType != null) {
+            schedules = scheduleRepository.findByRegionFromAndRegionTo(from, to, vehicleType);
+        } else {
+            schedules = scheduleRepository.findByRegionFromAndRegionTo(from, to);
+        }
+        Sort sort = Sort.by(Sort.Order.asc("startTime"));
+
+        var trips = tripRepository.findTripsBySchedulesAndStartTime(
+                schedules.stream().map(Schedule::getId).collect(Collectors.toList()),
+                fromDate,
+                fromDate.plusDays(1),
+                sort
+        );
+
+        var scheduleResponses = schedules.stream()
+                .map(scheduleMapper::toResponse)
+                .collect(Collectors.toList());
+        scheduleResponses.forEach(scheduleResponse -> {
+            List<Trip> tripList = trips.stream()
+                    .filter(trip -> trip.getScheduleId().equals(scheduleResponse.getId()))
+                    .filter(trip -> ticketCount == null || trip.getSeatsAvailable() > ticketCount)
+                    .collect(Collectors.toList());
+
+            if (timeInDay != null) {
+                tripList = filterByTimeSlot(timeInDay, tripList);
+            }
+
+            if (floorNo != null) {
+                tripList = filterByFloor(floorNo, tripList);
+            }
+
+            if (!tripList.isEmpty()) {
+                Duration duration = Duration.between(tripList.get(0).getStartTime(), tripList.get(0).getEndTime());
                 double minutes = duration.toMinutes();
                 scheduleResponse.setDuration(minutes);
-            });
-        }
-        if (timeInDay != null) {
-            scheduleResponses.forEach(scheduleResponse -> {
-                var trips = filterByTimeSlot(timeInDay, scheduleResponse.getTrips());
-                scheduleResponse.setTrips(trips);
-            });
-        }
+            }
+
+            scheduleResponse.setTrips(tripList.stream().map(tripMapper::toInfo).collect(Collectors.toList()));
+        });
 
         return ListResponse.<ScheduleResponse>builder()
                 .size(scheduleResponses.size())
@@ -228,7 +262,8 @@ public class DefaultTripService implements TripService {
                 .build();
     }
 
-    public List<TripInfo> filterByTimeSlot(String period, List<TripInfo> trips) {
+
+    public List<Trip> filterByTimeSlot(String period, List<Trip> trips) {
         LocalTime start = null;
         LocalTime end = switch (period) {
             case "midnight" -> {
@@ -250,14 +285,33 @@ public class DefaultTripService implements TripService {
             default -> throw new InputInvalidException(List.of("Time in day not valid"));
         };
 
-        List<TripInfo> result = new ArrayList<>();
-        for (TripInfo trip : trips) {
+        List<Trip> result = new ArrayList<>();
+        for (Trip trip : trips) {
             if (!trip.getStartTime().toLocalTime().isBefore(start) && trip.getStartTime().toLocalTime().isBefore(end)) {
                 result.add(trip);
             }
         }
         return result;
     }
+
+
+    public List<Trip> filterByFloor( Integer floorNo, List<Trip> trips) {
+        List<Trip> result = trips.stream()
+                .filter(trip -> {
+                    List<String> seatsReserved = trip.getSeatsReserved();
+                    if (floorNo == 1) {
+                        long seatInFloor = seatsReserved.stream().filter(seat -> seat.startsWith("A")).count();
+                        return seatInFloor < trip.getFirstFloorSeats();
+                    } else if (floorNo == 2) {
+                        long seatInFloor = seatsReserved.stream().filter(seat -> seat.startsWith("B")).count();
+                        return seatInFloor < trip.getSecondFloorSeats();
+                    }
+                    return false;
+                })
+                .collect(Collectors.toList());
+        return result;
+    }
+
 
     @Override
     public List<ScheduleResponse> getSchedulesIncludeTripsByFromAndTo(String from, String to, LocalDate date, Long vehicleTypeId) {

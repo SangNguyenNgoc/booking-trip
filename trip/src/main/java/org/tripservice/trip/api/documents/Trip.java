@@ -18,8 +18,11 @@ public class Trip {
     private String id;
     private LocalDateTime startTime;
     private LocalDateTime endTime;
-    private List<String> seatsReserved;
+    private Integer totalSeats;
+    private Integer firstFloorSeats;
+    private Integer secondFloorSeats;
     private Integer seatsAvailable;
+    private List<String> seatsReserved;
     private String licensePlate;
     private Long price;
     private String scheduleId;
