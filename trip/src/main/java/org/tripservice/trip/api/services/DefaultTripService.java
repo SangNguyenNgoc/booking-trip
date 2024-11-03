@@ -239,8 +239,8 @@ public class DefaultTripService implements TripService {
                     .filter(trip -> ticketCount == null || trip.getSeatsAvailable() > ticketCount)
                     .collect(Collectors.toList());
 
-            if (timeInDay != null) {
-                tripList = filterByTimeSlot(timeInDay, tripList);
+            if (timeInDay != null && !timeInDay.isEmpty()) {
+                tripList = filterByTimeSlots(List.of(timeInDay.split("-")), tripList);
             }
 
             if (floorNo != null) {
@@ -263,34 +263,44 @@ public class DefaultTripService implements TripService {
     }
 
 
-    public List<Trip> filterByTimeSlot(String period, List<Trip> trips) {
-        LocalTime start = null;
-        LocalTime end = switch (period) {
-            case "midnight" -> {
-                start = LocalTime.of(0, 0);
-                yield LocalTime.of(6, 0);
-            }
-            case "morning" -> {
-                start = LocalTime.of(6, 0);
-                yield LocalTime.of(12, 0);
-            }
-            case "afternoon" -> {
-                start = LocalTime.of(12, 0);
-                yield LocalTime.of(18, 0);
-            }
-            case "evening" -> {
-                start = LocalTime.of(18, 0);
-                yield LocalTime.of(23, 59, 59);
-            }
-            default -> throw new InputInvalidException(List.of("Time in day not valid"));
-        };
-
+    public List<Trip> filterByTimeSlots(List<String> periods, List<Trip> trips) {
         List<Trip> result = new ArrayList<>();
+
         for (Trip trip : trips) {
-            if (!trip.getStartTime().toLocalTime().isBefore(start) && trip.getStartTime().toLocalTime().isBefore(end)) {
+            LocalTime tripStartTime = trip.getStartTime().toLocalTime();
+
+            boolean matchesAnyPeriod = periods.stream().anyMatch(period -> {
+                LocalTime start;
+                LocalTime end;
+
+                switch (period) {
+                    case "midnight" -> {
+                        start = LocalTime.of(0, 0);
+                        end = LocalTime.of(6, 0);
+                    }
+                    case "morning" -> {
+                        start = LocalTime.of(6, 0);
+                        end = LocalTime.of(12, 0);
+                    }
+                    case "afternoon" -> {
+                        start = LocalTime.of(12, 0);
+                        end = LocalTime.of(18, 0);
+                    }
+                    case "evening" -> {
+                        start = LocalTime.of(18, 0);
+                        end = LocalTime.of(23, 59, 59);
+                    }
+                    default -> throw new InputInvalidException(List.of("Time in day not valid: " + period));
+                }
+
+                return !tripStartTime.isBefore(start) && tripStartTime.isBefore(end);
+            });
+
+            if (matchesAnyPeriod) {
                 result.add(trip);
             }
         }
+
         return result;
     }
 
