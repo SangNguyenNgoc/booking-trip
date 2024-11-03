@@ -396,7 +396,9 @@ public class DefaultTripService implements TripService {
             var seatsRemoved = tripMap.get(trip.getId());
             seats.removeAll(seatsRemoved);
             trip.setSeatsReserved(seats);
-            trip.setSeatsAvailable(trip.getSeatsAvailable() + seatsRemoved.size());
+            if (trip.getSeatsAvailable() < trip.getTotalSeats()) {
+                trip.setSeatsAvailable(trip.getSeatsAvailable() + seatsRemoved.size());
+            }
         });
         tripRepository.saveAll(trips);
     }

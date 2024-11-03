@@ -16,9 +16,6 @@ public class TripInfo {
     private String id;
     private LocalDateTime startTime;
     private LocalDateTime endTime;
-    private Integer totalSeats;
-    private Integer firstFloorSeats;
-    private Integer secondFloorSeats;
     private Integer seatsAvailable;
     private Long price;
 
