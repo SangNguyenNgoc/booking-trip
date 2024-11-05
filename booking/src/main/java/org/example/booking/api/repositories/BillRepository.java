@@ -15,8 +15,8 @@ public interface BillRepository extends JpaRepository<Bill, String> {
     Optional<Bill> findByIdAndStatusId(String id, Integer id1);
 
     @Query("select b from Bill b where " +
-            "(b.expireAt < ?1 and b.status.id = 1) " +
-            "or b.failure = true ")
+            "(b.failure = true or b.expireAt < ?1) " +
+            "and b.status.id = 1")
     Optional<List<Bill>> findByExpireAtAndStatus(LocalDateTime toNow);
 
     @Query("select b from Bill b " +
@@ -30,4 +30,10 @@ public interface BillRepository extends JpaRepository<Bill, String> {
             "join fetch b.tickets tk " +
             "where b.passengerPhone like concat('%', ?1, '%')")
     List<Bill> findBillByPhoneNumber(String phoneNumber);
+
+    @Query("select b from Bill b " +
+            "join fetch b.trip t " +
+            "join fetch b.tickets tk " +
+            "where b.passengerPhone like concat('%', ?2, '%') and b.id = ?1")
+    Optional<Bill> findBillByPhoneNumberAndId(String billId, String phoneNumber);
 }

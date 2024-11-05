@@ -9,4 +9,5 @@ public interface BillService {
     String payment(String id, String responseCode, String transactionStatus, String paymentAt);
     ListResponse<BillResponse> getBillByUser();
     ListResponse<BillResponse> getBillByPhoneNumber(String phoneNumber);
+    public BillResponse getBillByIdAndPhoneNumber(String billId, String phoneNumber);
 }

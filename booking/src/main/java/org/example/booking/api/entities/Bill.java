@@ -74,4 +74,15 @@ public class Bill {
             nullable = false
     )
     private Trip trip;
+
+    @OneToOne
+    @JoinColumn(name = "parent_id")
+    private Bill parent;
+
+    @OneToOne(
+            fetch = FetchType.EAGER,
+            cascade = CascadeType.PERSIST,
+            mappedBy = "parent"
+    )
+    private Bill roundTrip;
 }
