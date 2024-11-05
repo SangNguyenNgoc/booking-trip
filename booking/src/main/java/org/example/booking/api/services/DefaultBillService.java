@@ -32,10 +32,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
@@ -70,37 +67,62 @@ public class DefaultBillService implements BillService {
 
     @Override
     public String create(BillCreate billCreate) {
-        var trip = checkTripAndGetPrize(billCreate.getTripId());
+        var trip = checkTripAndGetPrize(billCreate.getTrip().getTripId());
         //Check ghế đã đặt chưa
-        checkSeatAreReserved(billCreate.getSeats(), billCreate.getTripId());
+        checkSeatAreReserved(billCreate.getTrip().getSeats(), billCreate.getTrip().getTripId());
         BillStatus billStatus = billStatusRepository.findById(1).orElseThrow(
                 () -> new DataNotFoundException(List.of("Status not found")));
 
-        var totalPrice = trip.getPrice() * billCreate.getSeats().size();
-        var billId = AppUtils.getRandomNumber(12) + LocalDateTime.now();
-        String paymentUrl = vnPayService.doPost((long) totalPrice, billId);
+        var totalPrice = (trip.getPrice() * billCreate.getTrip().getSeats().size());
+        var tripBillId = AppUtils.getRandomNumber(12) + LocalDateTime.now();
+
+
         var newBill = Bill.builder()
-                .id(billId)
+                .id(tripBillId)
                 .expireAt(LocalDateTime.now().plusMinutes(10))
                 .status(billStatus)
                 .passengerName(billCreate.getPassengerName())
                 .passengerEmail(billCreate.getPassengerEmail())
                 .passengerPhone(billCreate.getPassengerPhone())
                 .totalPrice((long) totalPrice)
-                .paymentUrl(paymentUrl)
                 .trip(trip)
                 .build();
+
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         if (authentication.getPrincipal() instanceof Jwt jwt) {
             String userId = jwt.getClaim("sub");
             newBill.setProfileId(userId);
         }
-
-        kafkaTemplate.send("BillIsBooked", billCreate);
+        List<BillCreate.TripBooking> listTrip = new ArrayList<>();
         //Tạo vé
-        var tickets = createTickets(trip, billCreate.getSeats(), newBill);
+        var tickets = createTickets(trip, billCreate.getTrip().getSeats(), newBill);
         newBill.setTickets(tickets);
+        if (billCreate.getRoundTrip() != null){
+            var roundTrip = checkTripAndGetPrize(billCreate.getRoundTrip().getTripId());
+            checkSeatAreReserved(billCreate.getRoundTrip().getSeats(), billCreate.getRoundTrip().getTripId());
+            totalPrice = totalPrice + (roundTrip.getPrice() * billCreate.getRoundTrip().getSeats().size());
+            var roundBillId = AppUtils.getRandomNumber(12) + LocalDateTime.now();
+            var newRoundBill = Bill.builder()
+                    .id(roundBillId)
+                    .expireAt(LocalDateTime.now().plusMinutes(10))
+                    .status(billStatus)
+                    .passengerName(billCreate.getPassengerName())
+                    .passengerEmail(billCreate.getPassengerEmail())
+                    .passengerPhone(billCreate.getPassengerPhone())
+                    .totalPrice((long) (roundTrip.getPrice() * billCreate.getRoundTrip().getSeats().size()))
+                    .trip(roundTrip)
+                    .parent(newBill)
+                    .build();
+            var roundTickets = createTickets(roundTrip, billCreate.getRoundTrip().getSeats(), newRoundBill);
+            newRoundBill.setTickets(roundTickets);
+            newBill.setRoundTrip(newRoundBill);
+            listTrip.add(billCreate.getRoundTrip());
+        }
+        listTrip.add(billCreate.getTrip());
+        String paymentUrl = vnPayService.doPost((long) totalPrice, tripBillId);
+        newBill.setPaymentUrl(paymentUrl);
         billRepository.save(newBill);
+        kafkaTemplate.send("BillIsBooked", listTrip);
         return paymentUrl;
     }
 
@@ -224,6 +246,14 @@ public class DefaultBillService implements BillService {
                 )
                 .size(result.size())
                 .build();
+    }
+
+    @Override
+    public BillResponse getBillByIdAndPhoneNumber(String billId, String phoneNumber){
+        var result = billRepository.findBillByPhoneNumberAndId(billId, phoneNumber).orElseThrow(
+                () -> new DataNotFoundException(List.of("Data Invalid"))
+        );
+        return billMapper.toDto(result);
     }
 
 }

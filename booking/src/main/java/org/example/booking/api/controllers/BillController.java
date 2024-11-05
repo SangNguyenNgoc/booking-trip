@@ -63,9 +63,22 @@ public class BillController {
             description = "This endpoint allows admin get all bill was created with phone number",
             security = @SecurityRequirement(name = "Bearer Authentication")
     )
-    @GetMapping("/search")
+    @GetMapping("admin/search")
     @PreAuthorize("hasAuthority('SCOPE_ROLE_ADMIN')")
     public ResponseEntity<ListResponse<BillResponse>> getBillsByQuery(@RequestParam("phoneNumber") String phoneNumber){
         return ResponseEntity.ok(billService.getBillByPhoneNumber(phoneNumber));
+    }
+
+    @Operation(
+            summary = "Get bill was created by id",
+            description = "This endpoint allows get bill was created by id",
+            security = @SecurityRequirement(name = "Bearer Authentication")
+    )
+    @GetMapping("user/search")
+    public ResponseEntity<BillResponse> getBillsById(
+            @RequestParam("billId") String billId,
+            @RequestParam("phoneNumber") String phoneNumber
+    ){
+        return ResponseEntity.ok(billService.getBillByIdAndPhoneNumber(billId, phoneNumber));
     }
 }

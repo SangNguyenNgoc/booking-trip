@@ -12,9 +12,18 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 public class BillCreate {
-    private String tripId;
-    private List<String> seats;
+    private TripBooking Trip;
+    private TripBooking roundTrip;
     private String passengerName;
     private String passengerPhone;
     private String passengerEmail;
+
+    @Data
+    @Builder
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class TripBooking{
+        private String tripId;
+        private List<String> seats;
+    }
 }
