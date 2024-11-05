@@ -382,37 +382,16 @@ public class DefaultTripService implements TripService {
     @Transactional
     @KafkaListener(topics = "BillIsBooked")
     public void billIsBooked(List<BookingEvent> bookingEvents) {
-        // Nhóm các cập nhật cho Trip
-        Map<String, List<String>> tripSeatsMap = new HashMap<>();
-        Map<String, Integer> tripSeatsCountMap = new HashMap<>();
         bookingEvents.forEach(bookingEvent -> {
-            tripSeatsMap
-                    .computeIfAbsent(bookingEvent.getTripId(), k -> new ArrayList<>())
-                    .addAll(bookingEvent.getSeats());
-            tripSeatsCountMap
-                    .merge(bookingEvent.getTripId(), bookingEvent.getSeats().size(), Integer::sum);
-        });
-
-        // Cập nhật Trip một lần
-        tripSeatsMap.forEach((tripId, seats) -> {
-            Query tripQuery = new Query(Criteria.where("_id").is(tripId));
+            Query tripQuery = new Query(Criteria.where("_id").in(bookingEvent.getTripId()));
             Update tripUpdate = new Update()
-                    .push("seatsReserved").each(seats)
-                    .inc("seatsAvailable", -tripSeatsCountMap.get(tripId));
+                    .push("seatsReserved").each(bookingEvent.getSeats())
+                    .inc("seatsAvailable", -bookingEvent.getSeats().size());
             mongoTemplate.updateFirst(tripQuery, tripUpdate, Trip.class);
-        });
 
-        // Nhóm các cập nhật cho Schedule
-        Map<String, Integer> scheduleCountMap = new HashMap<>();
-        bookingEvents.forEach(bookingEvent -> {
             var trip = getTripById(bookingEvent.getTripId());
-            scheduleCountMap.merge(trip.getScheduleId(), bookingEvent.getSeats().size(), Integer::sum);
-        });
-
-        // Cập nhật Schedule một lần
-        scheduleCountMap.forEach((scheduleId, count) -> {
-            Query scheduleQuery = new Query(Criteria.where("_id").is(scheduleId));
-            Update scheduleUpdate = new Update().inc("bookedCount", count);
+            Query scheduleQuery = new Query(Criteria.where("_id").is(trip.getScheduleId()));
+            Update scheduleUpdate = new Update().inc("bookedCount", bookingEvent.getSeats().size());
             mongoTemplate.updateFirst(scheduleQuery, scheduleUpdate, Schedule.class);
         });
     }
