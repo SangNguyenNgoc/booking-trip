@@ -35,9 +35,7 @@ import java.time.Duration;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
@@ -152,8 +150,8 @@ public class DefaultTripService implements TripService {
                 if (isInDelayPeriod(currentTime)) {
                     // Chuyển thời gian đến 5h sáng hôm sau
                     currentTime = currentTime.getHour() <= 6
-                            ? LocalDateTime.of(arrivalTimeAtB.toLocalDate(), LocalTime.of(6, 0))
-                            : LocalDateTime.of(arrivalTimeAtB.toLocalDate().plusDays(1), LocalTime.of(6, 0));
+                            ? LocalDateTime.of(arrivalTimeAtB.toLocalDate(), LocalTime.of(6, 0).plusMinutes(delayMinus))
+                            : LocalDateTime.of(arrivalTimeAtB.toLocalDate().plusDays(1), LocalTime.of(6, 0).plusMinutes(delayMinus));
                     continue;  // Bắt đầu chuyến tiếp theo sau khi delay
                 }
 
@@ -178,17 +176,18 @@ public class DefaultTripService implements TripService {
 
                 var delayMinusB = plusMinus(availableTrip, departureTimeFromB, contrarySchedule.getId());
                 departureTimeFromB = departureTimeFromB.plusMinutes(delayMinusB);
+
                 // Kiểm tra nếu xe quay về trong khoảng thời gian delay từ 23h đến 5h
                 if (isInDelayPeriod(departureTimeFromB)) {
                     // Delay đến 5h sáng hôm sau
                     departureTimeFromB = departureTimeFromB.getHour() <= 6
-                            ? LocalDateTime.of(departureTimeFromB.toLocalDate(), LocalTime.of(6, 0))
-                            : LocalDateTime.of(departureTimeFromB.toLocalDate().plusDays(1), LocalTime.of(6, 0));
+                            ? LocalDateTime.of(departureTimeFromB.toLocalDate(), LocalTime.of(6, 0).plusMinutes(delayMinusB))
+                            : LocalDateTime.of(departureTimeFromB.toLocalDate().plusDays(1), LocalTime.of(6, 0).plusMinutes(delayMinusB));
                 }
                 LocalDateTime arrivalTimeAtA = departureTimeFromB.plusMinutes(makeDurationTrip(contrarySchedule.getDuration()));
 
                 // Thêm chuyến đi B -> A vào danh sách
-                var contraryTRip = Trip.builder()
+                var contraryTrip = Trip.builder()
                         .licensePlate(vehicle)
                         .scheduleId(contrarySchedule.getId())
                         .seatsAvailable(seatsWithNames.size())
@@ -200,8 +199,8 @@ public class DefaultTripService implements TripService {
                         .startTime(departureTimeFromB)
                         .endTime(arrivalTimeAtA.plusMinutes(delayMinusB))
                         .build();
-                trips.add(contraryTRip);
-                availableTrip.add(contraryTRip);
+                trips.add(contraryTrip);
+                availableTrip.add(contraryTrip);
 
                 // Cập nhật thời gian cho chuyến tiếp theo
                 currentTime = arrivalTimeAtA;
@@ -213,53 +212,52 @@ public class DefaultTripService implements TripService {
     @Override
     public ListResponse<ScheduleResponse> getSchedulesIncludeTripsByFromAndTo(
             String from, String to, LocalDate fromDate,
-            Integer ticketCount, String timeInDay, Long vehicleType, Integer floorNo
+            Integer ticketCount, String timeInDay, String vehicleType, String floorNo
     ) {
-        List<Schedule> schedules;
-        if (vehicleType != null) {
-            schedules = scheduleRepository.findByRegionFromAndRegionTo(from, to, vehicleType);
-        } else {
-            schedules = scheduleRepository.findByRegionFromAndRegionTo(from, to);
-        }
-        Sort sort = Sort.by(Sort.Order.asc("startTime"));
+        List<Schedule> schedules = (vehicleType != null && !vehicleType.isEmpty()) ?
+                scheduleRepository.findByRegionFromAndRegionTo(
+                        from, to, Arrays.stream(vehicleType.split("-"))
+                                .map(Long::parseLong)
+                                .collect(Collectors.toList())) :
+                scheduleRepository.findByRegionFromAndRegionTo(from, to);
 
-        var trips = tripRepository.findTripsBySchedulesAndStartTime(
-                schedules.stream().map(Schedule::getId).collect(Collectors.toList()),
-                fromDate,
-                fromDate.plusDays(1),
-                sort
-        );
+        Sort sort = Sort.by(Sort.Order.asc("startTime"));
+        var tripIds = schedules.stream().map(Schedule::getId).collect(Collectors.toList());
+        var trips = tripRepository.findTripsBySchedulesAndStartTime(tripIds, fromDate, fromDate.plusDays(1), sort);
 
         var scheduleResponses = schedules.stream()
                 .map(scheduleMapper::toResponse)
+                .peek(scheduleResponse -> {
+                    List<Trip> filteredTrips = trips.stream()
+                            .filter(trip -> trip.getScheduleId().equals(scheduleResponse.getId()))
+                            .filter(trip -> ticketCount == null || trip.getSeatsAvailable() > ticketCount)
+                            .collect(Collectors.toList());
+
+                    if (timeInDay != null && !timeInDay.isEmpty()) {
+                        filteredTrips = filterByTimeSlots(List.of(timeInDay.split("-")), filteredTrips);
+                    }
+
+                    if (floorNo != null && !floorNo.isEmpty()) {
+                        List<Integer> floorNoList = Arrays.stream(floorNo.split("-"))
+                                .map(Integer::parseInt)
+                                .collect(Collectors.toList());
+                        filteredTrips = filterByFloor(floorNoList, filteredTrips);
+                    }
+
+                    if (!filteredTrips.isEmpty()) {
+                        Duration duration = Duration.between(filteredTrips.get(0).getStartTime(), filteredTrips.get(0).getEndTime());
+                        scheduleResponse.setDuration((double) duration.toMinutes());
+                    }
+
+                    scheduleResponse.setTrips(filteredTrips.stream().map(tripMapper::toInfo).collect(Collectors.toList()));
+                })
                 .collect(Collectors.toList());
-        scheduleResponses.forEach(scheduleResponse -> {
-            List<Trip> tripList = trips.stream()
-                    .filter(trip -> trip.getScheduleId().equals(scheduleResponse.getId()))
-                    .filter(trip -> ticketCount == null || trip.getSeatsAvailable() > ticketCount)
-                    .collect(Collectors.toList());
-
-            if (timeInDay != null && !timeInDay.isEmpty()) {
-                tripList = filterByTimeSlots(List.of(timeInDay.split("-")), tripList);
-            }
-
-            if (floorNo != null) {
-                tripList = filterByFloor(floorNo, tripList);
-            }
-
-            if (!tripList.isEmpty()) {
-                Duration duration = Duration.between(tripList.get(0).getStartTime(), tripList.get(0).getEndTime());
-                double minutes = duration.toMinutes();
-                scheduleResponse.setDuration(minutes);
-            }
-
-            scheduleResponse.setTrips(tripList.stream().map(tripMapper::toInfo).collect(Collectors.toList()));
-        });
 
         return ListResponse.<ScheduleResponse>builder()
                 .size(scheduleResponses.size())
                 .data(scheduleResponses)
                 .build();
+
     }
 
 
@@ -305,29 +303,34 @@ public class DefaultTripService implements TripService {
     }
 
 
-    public List<Trip> filterByFloor( Integer floorNo, List<Trip> trips) {
-        List<Trip> result = trips.stream()
+    public List<Trip> filterByFloor(List<Integer> floorNo, List<Trip> trips) {
+        return trips.stream()
                 .filter(trip -> {
                     List<String> seatsReserved = trip.getSeatsReserved();
-                    if (floorNo == 1) {
-                        long seatInFloor = seatsReserved.stream().filter(seat -> seat.startsWith("A")).count();
-                        return seatInFloor < trip.getFirstFloorSeats();
-                    } else if (floorNo == 2) {
-                        long seatInFloor = seatsReserved.stream().filter(seat -> seat.startsWith("B")).count();
-                        return seatInFloor < trip.getSecondFloorSeats();
+                    if (floorNo.size() == 1) {
+                        int floor = floorNo.get(0);
+                        long seatsInFloor = seatsReserved.stream()
+                                .filter(seat -> seat.startsWith(floor == 1 ? "A" : "B"))
+                                .count();
+
+                        return floor == 1 ? seatsInFloor < trip.getFirstFloorSeats()
+                                : seatsInFloor < trip.getSecondFloorSeats();
                     }
-                    return false;
+                    return true;
                 })
                 .collect(Collectors.toList());
-        return result;
     }
 
 
+
     @Override
-    public List<ScheduleResponse> getSchedulesIncludeTripsByFromAndTo(String from, String to, LocalDate date, Long vehicleTypeId) {
+    public List<ScheduleResponse> getSchedulesIncludeTripsByFromAndTo(String from, String to, LocalDate date, String vehicleType) {
         List<Schedule> schedules;
-        if (vehicleTypeId != null) {
-            schedules = scheduleRepository.findByRegionFromAndRegionTo(from, to, vehicleTypeId);
+        if (vehicleType != null && !vehicleType.isEmpty() ) {
+            List<Long> vehicleTypeIds = Arrays.stream(vehicleType.split("-"))
+                    .map(Long::parseLong)
+                    .collect(Collectors.toList());
+            schedules = scheduleRepository.findByRegionFromAndRegionTo(from, to, vehicleTypeIds);
         } else {
             schedules = scheduleRepository.findByRegionFromAndRegionTo(from, to);
         }
@@ -378,17 +381,40 @@ public class DefaultTripService implements TripService {
     @Override
     @Transactional
     @KafkaListener(topics = "BillIsBooked")
-    public void billIsBooked(BookingEvent bookingEvent) {
-        Query tripQuery = new Query(Criteria.where("_id").is(bookingEvent.getTripId()));
-        Update tripUpdate = new Update()
-                .push("seatsReserved").each(bookingEvent.getSeats())
-                .inc("seatsAvailable", -bookingEvent.getSeats().size());
-        mongoTemplate.updateFirst(tripQuery, tripUpdate, Trip.class);
+    public void billIsBooked(List<BookingEvent> bookingEvents) {
+        // Nhóm các cập nhật cho Trip
+        Map<String, List<String>> tripSeatsMap = new HashMap<>();
+        Map<String, Integer> tripSeatsCountMap = new HashMap<>();
+        bookingEvents.forEach(bookingEvent -> {
+            tripSeatsMap
+                    .computeIfAbsent(bookingEvent.getTripId(), k -> new ArrayList<>())
+                    .addAll(bookingEvent.getSeats());
+            tripSeatsCountMap
+                    .merge(bookingEvent.getTripId(), bookingEvent.getSeats().size(), Integer::sum);
+        });
 
-        var trip = getTripById(bookingEvent.getTripId());
-        Query scheduleQuery = new Query(Criteria.where("_id").is(trip.getScheduleId()));
-        Update scheduleUpdate = new Update().inc("bookedCount", bookingEvent.getSeats().size());
-        mongoTemplate.updateFirst(scheduleQuery, scheduleUpdate, Schedule.class);
+        // Cập nhật Trip một lần
+        tripSeatsMap.forEach((tripId, seats) -> {
+            Query tripQuery = new Query(Criteria.where("_id").is(tripId));
+            Update tripUpdate = new Update()
+                    .push("seatsReserved").each(seats)
+                    .inc("seatsAvailable", -tripSeatsCountMap.get(tripId));
+            mongoTemplate.updateFirst(tripQuery, tripUpdate, Trip.class);
+        });
+
+        // Nhóm các cập nhật cho Schedule
+        Map<String, Integer> scheduleCountMap = new HashMap<>();
+        bookingEvents.forEach(bookingEvent -> {
+            var trip = getTripById(bookingEvent.getTripId());
+            scheduleCountMap.merge(trip.getScheduleId(), bookingEvent.getSeats().size(), Integer::sum);
+        });
+
+        // Cập nhật Schedule một lần
+        scheduleCountMap.forEach((scheduleId, count) -> {
+            Query scheduleQuery = new Query(Criteria.where("_id").is(scheduleId));
+            Update scheduleUpdate = new Update().inc("bookedCount", count);
+            mongoTemplate.updateFirst(scheduleQuery, scheduleUpdate, Schedule.class);
+        });
     }
 
     @Override

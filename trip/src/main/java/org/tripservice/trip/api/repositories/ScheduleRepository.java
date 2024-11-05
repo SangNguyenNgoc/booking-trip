@@ -18,8 +18,8 @@ public interface ScheduleRepository extends MongoRepository<Schedule, String> {
     @Query("{'regionFrom.slug': ?0, 'regionTo.slug': ?1}")
     List<Schedule> findByRegionFromAndRegionTo(String from, String to);
 
-    @Query("{'regionFrom.slug': ?0, 'regionTo.slug': ?1, 'vehicleTypeId': ?2}")
-    List<Schedule> findByRegionFromAndRegionTo(String from, String to, Long vehicleTypeId);
+    @Query("{'regionFrom.slug': ?0, 'regionTo.slug': ?1, 'vehicleTypeId': { $in: ?2 }}")
+    List<Schedule> findByRegionFromAndRegionTo(String from, String to, List<Long> vehicleTypeId);
 
     @Query(value = "{'regionFrom.slug' : ?0}", sort = "{'bookedCount': -1}")
     List<Schedule> findTop3ByRegionFromOrderByBookedCountDesc(String regionFrom, Pageable pageable);

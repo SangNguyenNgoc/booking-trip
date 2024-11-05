@@ -23,18 +23,18 @@ public interface TripService {
 
     ListResponse<ScheduleResponse> getSchedulesIncludeTripsByFromAndTo(
             String from, String to, LocalDate fromDate,
-            Integer ticketCount, String timeInDay, Long vehicleType, Integer floorNo
+            Integer ticketCount, String timeInDay, String vehicleType, String floorNo
     );
 
     List<ScheduleResponse> getSchedulesIncludeTripsByFromAndTo(
-            String from, String to, LocalDate date, Long vehicleTypeId
+            String from, String to, LocalDate date, String vehicleTypeId
     );
 
     TripDetail getTripDetail(String tripId);
 
     TripDetail getTripDetailForBooking(String tripId);
 
-    void billIsBooked(BookingEvent bookingEvent);
+    void billIsBooked(List<BookingEvent> bookingEvents);
 
     void billIsExpired(List<BookingEvent> bookingEvents);
 
