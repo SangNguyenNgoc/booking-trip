@@ -172,18 +172,18 @@ public class DefaultTripService implements TripService {
                 availableTrip.add(trip);
 
                 // Thời gian quay lại từ B về A
-                LocalDateTime departureTimeFromB = arrivalTimeAtB;
+                LocalDateTime departureTimeFromB = arrivalTimeAtB.plusMinutes(delayMinus);
 
-                var delayMinusB = plusMinus(availableTrip, departureTimeFromB, contrarySchedule.getId());
-                departureTimeFromB = departureTimeFromB.plusMinutes(delayMinusB);
 
                 // Kiểm tra nếu xe quay về trong khoảng thời gian delay từ 23h đến 5h
                 if (isInDelayPeriod(departureTimeFromB)) {
                     // Delay đến 5h sáng hôm sau
                     departureTimeFromB = departureTimeFromB.getHour() <= 6
-                            ? LocalDateTime.of(departureTimeFromB.toLocalDate(), LocalTime.of(6, 0).plusMinutes(delayMinusB))
-                            : LocalDateTime.of(departureTimeFromB.toLocalDate().plusDays(1), LocalTime.of(6, 0).plusMinutes(delayMinusB));
+                            ? LocalDateTime.of(departureTimeFromB.toLocalDate(), LocalTime.of(6, 0))
+                            : LocalDateTime.of(departureTimeFromB.toLocalDate().plusDays(1), LocalTime.of(6, 0));
                 }
+                var delayMinusB = plusMinus(availableTrip, departureTimeFromB, contrarySchedule.getId());
+                departureTimeFromB = departureTimeFromB.plusMinutes(delayMinusB);
                 LocalDateTime arrivalTimeAtA = departureTimeFromB.plusMinutes(makeDurationTrip(contrarySchedule.getDuration()));
 
                 // Thêm chuyến đi B -> A vào danh sách
@@ -197,7 +197,7 @@ public class DefaultTripService implements TripService {
                         .secondFloorSeats(secondFloorSeats.size())
                         .seatsReserved(new ArrayList<>())
                         .startTime(departureTimeFromB)
-                        .endTime(arrivalTimeAtA.plusMinutes(delayMinusB))
+                        .endTime(arrivalTimeAtA)
                         .build();
                 trips.add(contraryTrip);
                 availableTrip.add(contraryTrip);
