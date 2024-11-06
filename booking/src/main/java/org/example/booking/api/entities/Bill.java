@@ -28,7 +28,7 @@ public class Bill {
     @Column(name = "total_price", nullable = false)
     private Long totalPrice;
 
-    @Column(name = "payment_url", columnDefinition = "TEXT", nullable = false)
+    @Column(name = "payment_url", columnDefinition = "TEXT")
     private String paymentUrl;
 
     @Column(name = "failure_reason", nullable = true)
@@ -81,7 +81,7 @@ public class Bill {
 
     @OneToOne(
             fetch = FetchType.EAGER,
-            cascade = CascadeType.PERSIST,
+            cascade = CascadeType.ALL,
             mappedBy = "parent"
     )
     private Bill roundTrip;

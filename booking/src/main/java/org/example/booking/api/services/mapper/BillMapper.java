@@ -19,7 +19,8 @@ public interface BillMapper {
         bill.getTickets().forEach(ticket -> ticket.setBill(bill));
     }
 
-    BillResponse toDto(Bill bill);
+    @Mapping(target = "roundTrip", source = "roundTrip")
+    BillResponse billToBillResponse(Bill bill);
 
     @BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
     Bill partialUpdate(BillResponse billResponse, @MappingTarget Bill bill);

@@ -172,7 +172,8 @@ public class DefaultBillService implements BillService {
             if (bill.getFailureReason() != null) bill.setFailureReason(null);
             bill.setStatus(billStatus);
             bill.setPaymentAt(dateTime);
-
+            bill.getRoundTrip().setPaymentAt(dateTime);
+            bill.getRoundTrip().setStatus(billStatus);
 //            kafkaTemplate.send("TripIsPaid", tripIsPaid);
             return "Success";
         } else {
@@ -229,7 +230,7 @@ public class DefaultBillService implements BillService {
         var result = billRepository.findBillByProfileId(userId);
         return ListResponse.<BillResponse>builder()
                 .data(result.stream()
-                        .map(billMapper::toDto)
+                        .map(billMapper::billToBillResponse)
                         .toList()
                 )
                 .size(result.size())
@@ -241,7 +242,7 @@ public class DefaultBillService implements BillService {
         var result = billRepository.findBillByPhoneNumber(phoneNumber);
         return ListResponse.<BillResponse>builder()
                 .data(result.stream()
-                        .map(billMapper::toDto)
+                        .map(billMapper::billToBillResponse)
                         .toList()
                 )
                 .size(result.size())
@@ -253,7 +254,7 @@ public class DefaultBillService implements BillService {
         var result = billRepository.findBillByPhoneNumberAndId(billId, phoneNumber).orElseThrow(
                 () -> new DataNotFoundException(List.of("Data Invalid"))
         );
-        return billMapper.toDto(result);
+        return billMapper.billToBillResponse(result);
     }
 
 }

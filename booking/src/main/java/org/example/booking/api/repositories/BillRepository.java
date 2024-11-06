@@ -21,8 +21,9 @@ public interface BillRepository extends JpaRepository<Bill, String> {
 
     @Query("select b from Bill b " +
             "join fetch b.trip t " +
-            "join fetch b.tickets tk" +
-            " where b.profileId = ?1")
+            "join fetch b.tickets tk " +
+            "join fetch b.roundTrip " +
+            "where b.profileId = ?1")
     List<Bill> findBillByProfileId(String profileId);
 
     @Query("select b from Bill b " +
