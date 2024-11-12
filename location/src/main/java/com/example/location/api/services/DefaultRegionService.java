@@ -1,5 +1,6 @@
 package com.example.location.api.services;
 
+import com.example.location.api.dtos.location.TripScheduleResponse;
 import com.example.location.api.dtos.region.RegionInfo;
 import com.example.location.api.repositories.RegionRepository;
 import com.example.location.api.services.interfaces.RegionService;
@@ -33,5 +34,20 @@ public class DefaultRegionService implements RegionService {
                 () -> new DataNotFoundException(List.of("Region not found"))
         );
         return regionMapper.toDto(region);
+    }
+
+    @Override
+    public TripScheduleResponse getAllRegionsBySlug(String fromSlug, String toSlug) {
+        var fromRegion = regionRepository.findBySlug(fromSlug).orElseThrow(
+                () -> new DataNotFoundException(List.of("Region not found"))
+        );
+
+        var toRegion = regionRepository.findBySlug(toSlug).orElseThrow(
+                () -> new DataNotFoundException(List.of("Region not found"))
+        );
+        return TripScheduleResponse.builder()
+                .regionFrom(regionMapper.toDto(fromRegion))
+                .regionTo(regionMapper.toDto(toRegion))
+                .build();
     }
 }

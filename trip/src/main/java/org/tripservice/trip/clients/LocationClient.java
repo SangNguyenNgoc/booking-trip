@@ -4,6 +4,7 @@ import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.tripservice.trip.api.documents.Schedule;
 import org.tripservice.trip.api.dtos.schedule.ScheduleRequest;
 import org.tripservice.trip.config.ClientConfig;
@@ -19,6 +20,13 @@ public interface LocationClient {
     @GetMapping("/internal/locations/schedule")
     Optional<Schedule> getTripSchedule(
             @RequestBody ScheduleRequest request,
+            @RequestHeader("X-API-KEY") String apiKey
+    );
+
+    @GetMapping("/internal/regions/info")
+    Optional<Schedule> getRegionInfo(
+            @RequestParam(value = "from") String from,
+            @RequestParam(value = "to") String to,
             @RequestHeader("X-API-KEY") String apiKey
     );
 
