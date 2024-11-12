@@ -4,7 +4,6 @@ import com.example.location.api.dtos.location.LocationName;
 import com.example.location.api.dtos.location.TripScheduleRequest;
 import com.example.location.api.dtos.location.TripScheduleResponse;
 import com.example.location.api.services.interfaces.LocationService;
-import com.example.location.utils.dtos.ListResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;

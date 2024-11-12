@@ -16,6 +16,7 @@ import org.tripservice.trip.api.documents.Schedule;
 import org.tripservice.trip.api.documents.Trip;
 import org.tripservice.trip.api.documents.VehicleType;
 import org.tripservice.trip.api.dtos.booking.BookingEvent;
+import org.tripservice.trip.api.dtos.location.LocationName;
 import org.tripservice.trip.api.dtos.schedule.AssignSchedule;
 import org.tripservice.trip.api.dtos.schedule.ScheduleResponse;
 import org.tripservice.trip.api.dtos.trip.TripCreate;
@@ -27,6 +28,8 @@ import org.tripservice.trip.api.repositories.VehicleTypeRepository;
 import org.tripservice.trip.api.services.interfaces.TripService;
 import org.tripservice.trip.api.services.mappers.ScheduleMapper;
 import org.tripservice.trip.api.services.mappers.TripMapper;
+import org.tripservice.trip.clients.LocationClient;
+import org.tripservice.trip.config.VariableConfig;
 import org.tripservice.trip.utils.dtos.ListResponse;
 import org.tripservice.trip.utils.exception.DataNotFoundException;
 import org.tripservice.trip.utils.exception.InputInvalidException;
@@ -52,6 +55,9 @@ public class DefaultTripService implements TripService {
 
     KafkaTemplate<String, Object> kafkaTemplate;
     MongoTemplate mongoTemplate;
+
+    LocationClient locationClient;
+    VariableConfig variableConfig;
 
     public static Map<String, List<String>> groupByTripId(List<BookingEvent> events) {
         return events.stream()
@@ -221,6 +227,14 @@ public class DefaultTripService implements TripService {
                                 .collect(Collectors.toList())) :
                 scheduleRepository.findByRegionFromAndRegionTo(from, to);
 
+        if (schedules.isEmpty()) {
+            var scheduleResponses = getEmptySchedule(from, to);
+            return ListResponse.<ScheduleResponse>builder()
+                    .size(scheduleResponses.size())
+                    .data(scheduleResponses)
+                    .build();
+        }
+
         Sort sort = Sort.by(Sort.Order.asc("startTime"));
         var tripIds = schedules.stream().map(Schedule::getId).collect(Collectors.toList());
         var trips = tripRepository.findTripsBySchedulesAndStartTime(tripIds, fromDate, fromDate.plusDays(1), sort);
@@ -258,6 +272,29 @@ public class DefaultTripService implements TripService {
                 .data(scheduleResponses)
                 .build();
 
+    }
+
+
+    private List<ScheduleResponse> getEmptySchedule(String from, String to) {
+        var scheduleResponse = scheduleMapper.toResponse(
+                locationClient.getRegionInfo(from, to, variableConfig.LOCATION_API_KEY).orElseThrow(
+                        () -> new DataNotFoundException(List.of("Regions not found"))
+                ));
+        scheduleResponse.setTrips(List.of());
+        scheduleResponse.setId("");
+        scheduleResponse.setVehicleTypeName("");
+        scheduleResponse.setDistance((double) 0);
+        scheduleResponse.setDuration((double) 0);
+        scheduleResponse.setVehicleTypeId(0L);
+        scheduleResponse.setPrice(0L);
+        var locationName = LocationName.builder()
+                .name("")
+                .address("")
+                .slug("")
+                .build();
+        scheduleResponse.setFrom(locationName);
+        scheduleResponse.setTo(locationName);
+        return List.of(scheduleResponse);
     }
 
 
