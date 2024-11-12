@@ -6,8 +6,8 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.tripservice.trip.api.dtos.schedule.ScheduleDetail;
+import org.tripservice.trip.api.dtos.seat.SeatRow;
 
-import java.io.Serializable;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -24,22 +24,9 @@ public class TripDetail {
     private Long price;
 
     @JsonInclude(JsonInclude.Include.NON_NULL)
-    private List<SeatDto> seats;
-
-    @JsonInclude(JsonInclude.Include.NON_NULL)
     private ScheduleDetail schedule;
 
-    @Data
-    @Builder
-    @AllArgsConstructor
-    @NoArgsConstructor
-    public static class SeatDto implements Serializable {
-        private Long id;
-        private Integer rowNo;
-        private Integer colNo;
-        private Integer floorNo;
-        private String name;
-        private Boolean isReserved;
-    }
+    @JsonInclude(JsonInclude.Include.NON_NULL)
+    private List<List<SeatRow>> seats;
 
 }

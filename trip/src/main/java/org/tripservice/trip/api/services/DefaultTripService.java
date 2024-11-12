@@ -19,6 +19,8 @@ import org.tripservice.trip.api.dtos.booking.BookingEvent;
 import org.tripservice.trip.api.dtos.location.LocationName;
 import org.tripservice.trip.api.dtos.schedule.AssignSchedule;
 import org.tripservice.trip.api.dtos.schedule.ScheduleResponse;
+import org.tripservice.trip.api.dtos.seat.SeatDto;
+import org.tripservice.trip.api.dtos.seat.SeatRow;
 import org.tripservice.trip.api.dtos.trip.TripCreate;
 import org.tripservice.trip.api.dtos.trip.TripDetail;
 import org.tripservice.trip.api.dtos.trip.TripInfo;
@@ -41,6 +43,8 @@ import java.time.LocalTime;
 import java.util.*;
 import java.util.stream.Collectors;
 
+import static java.util.stream.Collectors.groupingBy;
+
 @Service
 @RequiredArgsConstructor
 @FieldDefaults(makeFinal = true, level = AccessLevel.PRIVATE)
@@ -61,7 +65,7 @@ public class DefaultTripService implements TripService {
 
     public static Map<String, List<String>> groupByTripId(List<BookingEvent> events) {
         return events.stream()
-                .collect(Collectors.groupingBy(
+                .collect(groupingBy(
                         BookingEvent::getTripId,
                         Collectors.flatMapping(event -> event.getSeats().stream(), Collectors.toList())
                 ));
@@ -455,19 +459,29 @@ public class DefaultTripService implements TripService {
         tripRepository.saveAll(trips);
     }
 
-    public List<TripDetail.SeatDto> mapSeat(VehicleType vehicleType, List<String> seatsReserved) {
-        List<TripDetail.SeatDto> seats = vehicleType.getSeats().stream().map(seat -> {
-            var seatDto = TripDetail.SeatDto.builder()
-                    .id(seat.getId())
-                    .rowNo(seat.getRowNo())
-                    .colNo(seat.getColNo())
-                    .floorNo(seat.getFloorNo())
-                    .name(seat.getName())
-                    .build();
-            seatDto.setIsReserved(seatsReserved.contains(seat.getName()));
-            return seatDto;
-        }).collect(Collectors.toList());
-        return seats;
+
+    public List<List<SeatRow>> mapSeat(VehicleType vehicleType, List<String> seatsReserved) {
+        return vehicleType.getSeats().stream()
+                .map(seat -> SeatDto.builder()
+                        .id(seat.getId())
+                        .rowNo(seat.getRowNo())
+                        .colNo(seat.getColNo())
+                        .floorNo(seat.getFloorNo())
+                        .name(seat.getName())
+                        .isReserved(seatsReserved.contains(seat.getName()))
+                        .build())
+                .collect(groupingBy(SeatDto::getFloorNo))
+                .entrySet().stream()
+                .map(floorEntry -> floorEntry.getValue().stream()
+                        .collect(groupingBy(SeatDto::getRowNo))
+                        .entrySet().stream()
+                        .map(rowEntry -> SeatRow.builder()
+                                .rowId(rowEntry.getKey())
+                                .floorNo(floorEntry.getKey())
+                                .seats(rowEntry.getValue())
+                                .build())
+                        .collect(Collectors.toList()))
+                .collect(Collectors.toList());
     }
 
 
