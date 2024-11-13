@@ -27,6 +27,6 @@ public class TripDetail {
     private ScheduleDetail schedule;
 
     @JsonInclude(JsonInclude.Include.NON_NULL)
-    private List<List<SeatRow>> seats;
+    private List<List<SeatRow>> seatData;
 
 }
