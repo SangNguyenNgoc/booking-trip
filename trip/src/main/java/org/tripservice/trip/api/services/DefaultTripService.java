@@ -405,7 +405,7 @@ public class DefaultTripService implements TripService {
         var tripDetail = tripMapper.toDetail(trip);
         var scheduleDetail = scheduleMapper.toDetail(schedule);
         tripDetail.setSchedule(scheduleDetail);
-        tripDetail.setSeats(mapSeat(vehicleType, trip.getSeatsReserved()));
+        tripDetail.setSeatData(mapSeat(vehicleType, trip.getSeatsReserved()));
         return tripDetail;
     }
 
