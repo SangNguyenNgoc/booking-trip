@@ -8,6 +8,7 @@ import org.springframework.boot.context.properties.bind.Binder;
 import org.springframework.core.env.Environment;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Service;
 import org.tripservice.trip.api.documents.Schedule;
 import org.tripservice.trip.api.dtos.location.RegionAndSchedule;
@@ -15,6 +16,7 @@ import org.tripservice.trip.api.dtos.location.RegionInfo;
 import org.tripservice.trip.api.dtos.schedule.ScheduleDetail;
 import org.tripservice.trip.api.dtos.schedule.ScheduleRequest;
 import org.tripservice.trip.api.dtos.schedule.ScheduleResponse;
+import org.tripservice.trip.api.dtos.schedule.ScheduleStatistic;
 import org.tripservice.trip.api.repositories.ScheduleRepository;
 import org.tripservice.trip.api.repositories.VehicleTypeRepository;
 import org.tripservice.trip.api.services.interfaces.ScheduleService;
@@ -48,6 +50,8 @@ public class DefaultScheduleService implements ScheduleService {
 
     Environment environment;
 
+    KafkaTemplate<String, ScheduleStatistic> scheduleStatisticTemplate;
+
     @Override
     public ScheduleDetail createSchedule(ScheduleRequest request) {
         tripScheduleValidator.validate(request);
@@ -70,6 +74,15 @@ public class DefaultScheduleService implements ScheduleService {
         schedule.setPrice(roundPrice(vehicleType.getPrice() * schedule.getDistance(), 10000));
         schedule.setBookedCount(0L);
         scheduleRepository.save(schedule);
+        var scheduleStatistic = ScheduleStatistic.builder()
+                .id(schedule.getId())
+                .regionFrom(schedule.getRegionFrom().getName())
+                .regionTo(schedule.getRegionTo().getName())
+                .from(schedule.getFrom().getName())
+                .to(schedule.getTo().getName())
+                .price(schedule.getPrice())
+                .build();
+        scheduleStatisticTemplate.send("ScheduleCreated", scheduleStatistic);
         return scheduleMapper.toDetail(schedule);
     }
 

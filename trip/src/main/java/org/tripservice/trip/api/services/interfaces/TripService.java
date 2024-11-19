@@ -38,4 +38,6 @@ public interface TripService {
 
     void billIsExpired(List<BookingEvent> bookingEvents);
 
+    void statisticTrip();
+
 }

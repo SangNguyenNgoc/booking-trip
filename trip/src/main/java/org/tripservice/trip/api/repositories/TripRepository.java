@@ -6,6 +6,7 @@ import org.springframework.data.mongodb.repository.Query;
 import org.tripservice.trip.api.documents.Trip;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 
 public interface TripRepository extends MongoRepository<Trip, String> {
@@ -19,5 +20,10 @@ public interface TripRepository extends MongoRepository<Trip, String> {
 
     @Query(value = "{'startTime': { $gte: ?0, $lt: ?1 } }", fields = "{ 'startTime': 1, 'endTime': 1, 'scheduleId': 1 }")
     List<Trip> findAllByStartTimeBeforeAndStartTimeAfter(LocalDate startTime, LocalDate endTime);
+
+    @Query(value = "{'startTime': { $gte: ?0, $lt: ?1 } }")
+    List<Trip> findAllInDay(LocalDateTime startTime, LocalDateTime endTime);
+
+
 
 }

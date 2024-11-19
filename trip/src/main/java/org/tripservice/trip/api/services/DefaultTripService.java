@@ -10,6 +10,7 @@ import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.data.mongodb.core.query.Update;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.kafka.core.KafkaTemplate;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.tripservice.trip.api.documents.Schedule;
@@ -24,6 +25,7 @@ import org.tripservice.trip.api.dtos.seat.SeatRow;
 import org.tripservice.trip.api.dtos.trip.TripCreate;
 import org.tripservice.trip.api.dtos.trip.TripDetail;
 import org.tripservice.trip.api.dtos.trip.TripInfo;
+import org.tripservice.trip.api.dtos.trip.TripStatistic;
 import org.tripservice.trip.api.repositories.ScheduleRepository;
 import org.tripservice.trip.api.repositories.TripRepository;
 import org.tripservice.trip.api.repositories.VehicleTypeRepository;
@@ -131,6 +133,7 @@ public class DefaultTripService implements TripService {
         ));
     }
 
+
     @Override
     public List<Trip> scheduleTrips(
             Schedule schedule, Schedule contrarySchedule, VehicleType vehicleType,
@@ -218,6 +221,7 @@ public class DefaultTripService implements TripService {
         }
         return trips;
     }
+
 
     @Override
     public ListResponse<ScheduleResponse> getSchedulesIncludeTripsByFromAndTo(
@@ -397,6 +401,7 @@ public class DefaultTripService implements TripService {
         return scheduleResponses;
     }
 
+
     @Override
     public TripDetail getTripDetail(String tripId) {
         var trip = getTripById(tripId);
@@ -409,6 +414,7 @@ public class DefaultTripService implements TripService {
         return tripDetail;
     }
 
+
     @Override
     public TripDetail getTripDetailForBooking(String tripId) {
         var trip = getTripById(tripId);
@@ -418,6 +424,7 @@ public class DefaultTripService implements TripService {
         tripDetail.setSchedule(scheduleDetail);
         return tripDetail;
     }
+
 
     @Override
     @Transactional
@@ -436,6 +443,7 @@ public class DefaultTripService implements TripService {
             mongoTemplate.updateFirst(scheduleQuery, scheduleUpdate, Schedule.class);
         });
     }
+
 
     @Override
     @Transactional
@@ -457,6 +465,30 @@ public class DefaultTripService implements TripService {
             }
         });
         tripRepository.saveAll(trips);
+    }
+
+
+    @Override
+    @Scheduled(cron = "0 0 3 * * *")
+    public void statisticTrip() {
+        LocalDate processDay = LocalDate.now().minusDays(1);
+        var trips = tripRepository.findAllInDay(
+                LocalDateTime.of(processDay, LocalTime.of(0,0)),
+                LocalDateTime.of(processDay, LocalTime.of(23,59))
+        );
+        var tripStatistics = trips.stream()
+                .map(trip -> TripStatistic.builder()
+                        .id(trip.getId())
+                        .startTime(trip.getStartTime())
+                        .endTime(trip.getEndTime())
+                        .totalSeats(trip.getTotalSeats())
+                        .seatsReserved(trip.getSeatsReserved().size())
+                        .scheduleId(trip.getScheduleId())
+                        .licensePlate(trip.getLicensePlate())
+                        .price(trip.getPrice())
+                        .build())
+                .collect(Collectors.toList());
+        kafkaTemplate.send("StatisticTrips", tripStatistics);
     }
 
 
