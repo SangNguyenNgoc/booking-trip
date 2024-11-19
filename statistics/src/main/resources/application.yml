@@ -1,0 +1,70 @@
+spring:
+  application:
+    name: statistics
+  data:
+    mongodb:
+      uri: mongodb+srv://${LOCATION_DB_USER}:${LOCATION_DB_PASSWORD}@${LOCATION_DB_HOST}/statistics?retryWrites=true&w=majority&appName=Cluster0
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          issuer-uri: ${AUTH_URL}
+  redis:
+    host: ${REDIS_HOST}
+    port: ${REDIS_PORT}
+    sentinel:
+      username: ${REDIS_USERNAME}
+      password: ${REDIS_PASSWORD}
+  kafka:
+    bootstrap-servers: ${BOOTSTRAP1}
+    producer:
+      value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
+      acks: -1
+      retries: 3
+      properties:
+        enable.idempotence: true
+        request.timeout.ms: 30000
+        max.in.flight.requests.per.connection: 5
+    consumer:
+      group-id: statistics-consumer-group
+      auto-offset-reset: earliest
+      value-deserializer: org.apache.kafka.common.serialization.ByteArrayDeserializer
+
+server:
+  port: 8088
+
+eureka:
+  instance:
+    hostname: ${EUREKA_HOST}
+  client:
+    service-url:
+      defaultZone: ${EUREKA_DEFAULT_ZONE}
+
+logging:
+  level:
+    org:
+      springframework:
+        data:
+          mongodb:
+            core:
+              MongoTemplate: DEBUG
+              MongoTemplate.Query: TRACE
+client:
+  client-id: web-client
+
+springdoc:
+  swagger-ui:
+    path: /swagger-ui.html
+    oauth:
+      client-id: ${client.client-id}
+      use-pkce-with-authorization-code-grant: true
+    oauth2-redirect-url: ${SWAGGER_DOMAIN}/swagger-ui/oauth2-redirect.html
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: info, health
+
+url:
+  base-url: ${SSL}://${DOMAIN}/api/v1

@@ -174,7 +174,7 @@ public class DefaultBillService implements BillService {
             bill.setPaymentAt(dateTime);
             bill.getRoundTrip().setPaymentAt(dateTime);
             bill.getRoundTrip().setStatus(billStatus);
-//            kafkaTemplate.send("TripIsPaid", tripIsPaid);
+//            kafkaTemplate.send("BillCreated", billMapper.toStatistics(bill));
             return "Success";
         } else {
             String message = getMessage(responseCode, transactionStatus);

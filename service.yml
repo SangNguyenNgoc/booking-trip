@@ -71,3 +71,15 @@ services:
       - "8087:8087"
     env_file:
       - .env
+
+  statistics:
+    environment:
+      TAG: statistics
+      TZ: Asia/Ho_Chi_Minh
+    build: ./statistics
+    container_name: statistics
+    restart: on-failure
+    ports:
+      - "8088:8088"
+    env_file:
+      - .env

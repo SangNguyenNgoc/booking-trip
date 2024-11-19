@@ -1,6 +1,7 @@
 package org.example.booking.api.services.mapper;
 
 import org.example.booking.api.dtos.BillResponse;
+import org.example.booking.api.dtos.BillStatistics;
 import org.example.booking.api.entities.Bill;
 import org.example.booking.api.entities.Ticket;
 import org.mapstruct.*;
@@ -24,4 +25,6 @@ public interface BillMapper {
 
     @BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
     Bill partialUpdate(BillResponse billResponse, @MappingTarget Bill bill);
+
+    BillStatistics toStatistics(Bill bill);
 }
