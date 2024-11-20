@@ -35,8 +35,8 @@ public class DefaultStatisticsService implements StatisticsService {
     private final TripRepository tripRepository;
 
     @KafkaListener(topics = "BillCreated")
-    private void createBill(Bill bill) {
-        billRepository.save(bill);
+    private void createBill(List<Bill> bills) {
+        billRepository.saveAll(bills);
     }
 
     @KafkaListener(topics = "ScheduleCreated")

@@ -1,5 +1,6 @@
 package org.example.profile.api.services;
 
+import com.fasterxml.jackson.core.type.TypeReference;
 import lombok.RequiredArgsConstructor;
 import org.example.profile.api.dtos.*;
 import org.example.profile.api.entities.Profile;
@@ -11,6 +12,7 @@ import org.example.profile.utils.exception.DataNotFoundException;
 import org.example.profile.utils.exception.InputInvalidException;
 import org.example.profile.utils.services.AppUtils;
 import org.example.profile.utils.services.ObjectsValidator;
+import org.example.profile.utils.services.RedisService;
 import org.springframework.http.HttpStatus;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.kafka.core.KafkaTemplate;
@@ -42,6 +44,7 @@ class ProfileServiceImpl implements ProfileService{
     private final ObjectsValidator<RegisterRequest> registerRequestObjectsValidator;
     private final ObjectsValidator<RegisterEmployeeRequest> registerEmployeeRequestObjectsValidator;
     private final KafkaTemplate<String, Object> kafkaTemplate;
+    private final RedisService<ProfileCreated> profileCreatedRedisService;
 
     @Override
     public String register(RegisterRequest registerRequest) {
@@ -129,12 +132,27 @@ class ProfileServiceImpl implements ProfileService{
         return mapper.toResponseDto(profileUpdate);
     }
 
+    @KafkaListener(
+            topics = "AccountCreatedGG" ,
+            id = "profile-consumer-group"
+    )
+    public void createProfile(ProfileCreated profileCreated){
+       profileRepository.save(Profile.builder()
+                .email(profileCreated.getEmail())
+                .fullname(profileCreated.getFullName())
+                .type("Customer")
+                .build()
+       );
+    }
+
     private Profile getProfileByAuth(){
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         Jwt jwt = (Jwt) authentication.getPrincipal();
         String userId = jwt.getClaim("sub");
-        return profileRepository.findById(userId)
-                .orElseThrow(() -> new DataNotFoundException(List.of("User not found")));
+        var profile = profileRepository.findById(userId);
+        if (profile.isEmpty())
+            profile = mapper.toEntity(profileCreatedRedisService.getValue(userId, new TypeReference<ProfileCreated>() {}));
+        return profile.orElseThrow(() -> new DataNotFoundException(List.of("User not found")));
     }
 
     private boolean isPasswordConfirmed(RegisterRequest registerRequest) {

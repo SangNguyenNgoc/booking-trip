@@ -1,9 +1,10 @@
 package org.example.notification.services;
 
-import jakarta.mail.MessagingException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import org.example.notification.dtos.Account;
+import org.example.notification.dtos.AccountCreatedGG;
+import org.example.notification.dtos.PaymentNotification;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.kafka.core.KafkaTemplate;
@@ -11,7 +12,8 @@ import org.springframework.stereotype.Service;
 import org.thymeleaf.context.Context;
 import org.thymeleaf.TemplateEngine;
 
-import java.io.UnsupportedEncodingException;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 
 @Service
@@ -38,6 +40,46 @@ public class DefaultNotificationService {
             ));
             String text = templateEngine.process("mail", context);
             mailService.sendEmailHtml(user.getEmail(), "Xác minh địa chỉ email của bạn", text);
+        } catch (Exception e) {
+            log.error(e.getMessage());
+        }
+    }
+
+    @KafkaListener(topics = "AccountCreatedGGNotified")
+    public void sendPassword(AccountCreatedGG accountCreatedGG){
+        try {
+            Context context = new Context();
+            context.setVariables(Map.of(
+                    "fullName", accountCreatedGG.getFullName(),
+                    "email", accountCreatedGG.getEmail(),
+                    "password", accountCreatedGG.getPassword()
+            ));
+            String text = templateEngine.process("createAccount", context);
+            mailService.sendEmailHtml(accountCreatedGG.getEmail(), "Thông tin đăng nhập", text);
+        } catch (Exception e) {
+            log.error(e.getMessage());
+        }
+    }
+
+    @KafkaListener(topics = "PaymentNotification")
+    public void sendPayment(PaymentNotification paymentNotification){
+        try {
+            Context context = new Context();
+            var total = paymentNotification.getTotalPrice();
+            var bills = new ArrayList<>(List.of(paymentNotification));
+            if (paymentNotification.getRoundTrip() != null){
+                total += paymentNotification.getRoundTrip().getTotalPrice();
+                bills.add(paymentNotification.getRoundTrip());
+            }
+            context.setVariables(Map.of(
+                    "bills", bills,
+                    "email", paymentNotification.getPassengerEmail(),
+                    "name", paymentNotification.getPassengerName(),
+                    "phone", paymentNotification.getPassengerPhone(),
+                    "total", total
+            ));
+            String text = templateEngine.process("paymentNotification", context);
+            mailService.sendEmailHtml(paymentNotification.getPassengerEmail(), "Thông tin thanh toán", text);
         } catch (Exception e) {
             log.error(e.getMessage());
         }
