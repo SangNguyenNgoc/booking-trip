@@ -150,8 +150,12 @@ class ProfileServiceImpl implements ProfileService{
         Jwt jwt = (Jwt) authentication.getPrincipal();
         String userId = jwt.getClaim("sub");
         var profile = profileRepository.findById(userId);
-        if (profile.isEmpty())
-            profile = mapper.toEntity(profileCreatedRedisService.getValue(userId, new TypeReference<ProfileCreated>() {}));
+        if (profile.isEmpty()) {
+            var redisProfile = profileCreatedRedisService.getValue(userId, new TypeReference<ProfileCreated>() {});
+            if(redisProfile == null) throw new DataNotFoundException(List.of("User not found"));
+            profileCreatedRedisService.deleteKeysWithPrefix(userId);
+            profile.orElseGet(() -> mapper.toEntity(redisProfile));
+        }
         return profile.orElseThrow(() -> new DataNotFoundException(List.of("User not found")));
     }
 
