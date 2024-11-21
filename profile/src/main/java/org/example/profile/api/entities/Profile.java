@@ -5,6 +5,8 @@ import lombok.*;
 import org.example.profile.utils.auditing.TimestampEntity;
 import org.hibernate.annotations.Type;
 
+import java.util.UUID;
+
 @Getter
 @Setter
 @NoArgsConstructor
@@ -14,7 +16,6 @@ import org.hibernate.annotations.Type;
 @Entity
 public class Profile extends TimestampEntity {
     @Id
-    @GeneratedValue(strategy = GenerationType.UUID)
     @Column(name = "id", nullable = false)
     private String id;
 
@@ -29,4 +30,11 @@ public class Profile extends TimestampEntity {
 
     @Column(name = "type", nullable = false)
     private String type;
+
+    @PrePersist
+    public void generateUUID() {
+        if (id == null) {
+            id = UUID.randomUUID().toString();
+        }
+    }
 }

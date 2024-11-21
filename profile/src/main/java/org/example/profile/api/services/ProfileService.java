@@ -32,6 +32,7 @@ public interface ProfileService {
     String register(RegisterRequest registerRequest);
     void handleAccountCreatedError(AccountCreatedError error);
     public String registerEmployee(RegisterEmployeeRequest registerRequest);
+    void createProfile(ProfileCreated profileCreated);
 
 }
 @Service
