@@ -143,6 +143,7 @@ class ProfileServiceImpl implements ProfileService{
                 .type("Customer")
                 .build()
        );
+        profileCreatedRedisService.deleteKeysWithPrefix(profileCreated.getProfileId());
     }
 
     private Profile getProfileByAuth(){
@@ -153,8 +154,7 @@ class ProfileServiceImpl implements ProfileService{
         if (profile.isEmpty()) {
             var redisProfile = profileCreatedRedisService.getValue(userId, new TypeReference<ProfileCreated>() {});
             if(redisProfile == null) throw new DataNotFoundException(List.of("User not found"));
-            profileCreatedRedisService.deleteKeysWithPrefix(userId);
-            profile.orElseGet(() -> mapper.toEntity(redisProfile));
+            return profile.orElseGet(() -> mapper.toEntity(redisProfile));
         }
         return profile.orElseThrow(() -> new DataNotFoundException(List.of("User not found")));
     }
