@@ -4,6 +4,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import org.example.notification.dtos.Account;
 import org.example.notification.dtos.AccountCreatedGG;
+import org.example.notification.dtos.ForgotPassword;
 import org.example.notification.dtos.PaymentNotification;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.kafka.annotation.KafkaListener;
@@ -80,6 +81,22 @@ public class DefaultNotificationService {
             ));
             String text = templateEngine.process("paymentNotification", context);
             mailService.sendEmailHtml(paymentNotification.getPassengerEmail(), "Thông tin thanh toán", text);
+        } catch (Exception e) {
+            log.error(e.getMessage());
+        }
+    }
+
+    @KafkaListener(topics = "ForgotPassword")
+    public void forgotPassword(ForgotPassword forgotPassword){
+        try {
+            Context context = new Context();
+
+            context.setVariables(Map.of(
+                    "url", forgotPassword.getVerify(),
+                    "email", forgotPassword.getEmail()
+            ));
+            String text = templateEngine.process("forgotPassword", context);
+            mailService.sendEmailHtml(forgotPassword.getEmail(), "Quên mật khẩu", text);
         } catch (Exception e) {
             log.error(e.getMessage());
         }

@@ -1,5 +1,6 @@
 package org.example.booking.api.services.mapper;
 
+import org.example.booking.api.dtos.BillGeneral;
 import org.example.booking.api.dtos.BillResponse;
 import org.example.booking.api.dtos.BillStatistics;
 import org.example.booking.api.entities.Bill;
@@ -27,4 +28,6 @@ public interface BillMapper {
     Bill partialUpdate(BillResponse billResponse, @MappingTarget Bill bill);
 
     BillStatistics toStatistics(Bill bill);
+
+    BillGeneral toBillGeneral(Bill bill);
 }

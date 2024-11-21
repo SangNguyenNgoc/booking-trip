@@ -5,6 +5,7 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import lombok.RequiredArgsConstructor;
 import org.example.booking.api.dtos.BillCreate;
+import org.example.booking.api.dtos.BillGeneral;
 import org.example.booking.api.dtos.BillResponse;
 import org.example.booking.api.services.interfaces.BillService;
 import org.example.booking.utils.dtos.ListResponse;
@@ -54,7 +55,7 @@ public class BillController {
     )
     @GetMapping
     @PreAuthorize("isAuthenticated()")
-    public ResponseEntity<ListResponse<BillResponse>> getBillsByUser(){
+    public ResponseEntity<ListResponse<BillGeneral>> getBillsByUser(){
         return ResponseEntity.ok(billService.getBillByUser());
     }
 
@@ -80,5 +81,10 @@ public class BillController {
             @RequestParam("phoneNumber") String phoneNumber
     ){
         return ResponseEntity.ok(billService.getBillByIdAndPhoneNumber(billId, phoneNumber));
+    }
+
+    @GetMapping("/{id}")
+    public ResponseEntity<BillResponse> getById(@PathVariable String id){
+        return ResponseEntity.ok(billService.getBillById(id));
     }
 }

@@ -1,10 +1,7 @@
 package org.example.booking.api.services;
 
 import lombok.RequiredArgsConstructor;
-import org.example.booking.api.dtos.BillCreate;
-import org.example.booking.api.dtos.BillResponse;
-import org.example.booking.api.dtos.BillIsExpired;
-import org.example.booking.api.dtos.BillStatistics;
+import org.example.booking.api.dtos.*;
 import org.example.booking.api.entities.Bill;
 import org.example.booking.api.entities.BillStatus;
 import org.example.booking.api.entities.Ticket;
@@ -229,18 +226,28 @@ public class DefaultBillService implements BillService {
     }
 
     @Override
-    public ListResponse<BillResponse> getBillByUser() {
+    public ListResponse<BillGeneral> getBillByUser() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         Jwt jwt = (Jwt) authentication.getPrincipal();
         String userId = jwt.getClaim("sub");
         var result = billRepository.findBillByProfileId(userId);
-        return ListResponse.<BillResponse>builder()
+        return ListResponse.<BillGeneral>builder()
                 .data(result.stream()
-                        .map(billMapper::billToBillResponse)
+                        .map(billMapper::toBillGeneral)
                         .toList()
                 )
                 .size(result.size())
                 .build();
+    }
+
+    @Override
+    public BillResponse getBillById(String id){
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        Jwt jwt = (Jwt) authentication.getPrincipal();
+        String userId = jwt.getClaim("sub");
+        var result = billRepository.findByIdAndProfileId(id, userId)
+                .orElseThrow(() -> new DataNotFoundException(List.of("Not found bill with id " + id)));
+        return billMapper.billToBillResponse(result);
     }
 
     @Override

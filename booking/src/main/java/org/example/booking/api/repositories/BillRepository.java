@@ -14,6 +14,13 @@ public interface BillRepository extends JpaRepository<Bill, String> {
     @Query("select b from Bill b where b.id = ?1 and b.status.id = ?2")
     Optional<Bill> findByIdAndStatusId(String id, Integer id1);
 
+    @Query("select b from Bill b " +
+            "join fetch b.trip t " +
+            "join fetch b.tickets tk " +
+            "left join fetch b.roundTrip " +
+            "where b.id =?1 and b.profileId = ?2")
+    Optional<Bill> findByIdAndProfileId(String id, String profileId);
+
     @Query("select b from Bill b where " +
             "(b.failure = true or b.expireAt < ?1) " +
             "and b.status.id = 1")
@@ -22,7 +29,7 @@ public interface BillRepository extends JpaRepository<Bill, String> {
     @Query("select b from Bill b " +
             "join fetch b.trip t " +
             "join fetch b.tickets tk " +
-            "join fetch b.roundTrip " +
+            "left join fetch b.roundTrip " +
             "where b.profileId = ?1")
     List<Bill> findBillByProfileId(String profileId);
 
