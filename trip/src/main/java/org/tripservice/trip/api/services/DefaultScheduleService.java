@@ -13,10 +13,7 @@ import org.springframework.stereotype.Service;
 import org.tripservice.trip.api.documents.Schedule;
 import org.tripservice.trip.api.dtos.location.RegionAndSchedule;
 import org.tripservice.trip.api.dtos.location.RegionInfo;
-import org.tripservice.trip.api.dtos.schedule.ScheduleDetail;
-import org.tripservice.trip.api.dtos.schedule.ScheduleRequest;
-import org.tripservice.trip.api.dtos.schedule.ScheduleResponse;
-import org.tripservice.trip.api.dtos.schedule.ScheduleStatistic;
+import org.tripservice.trip.api.dtos.schedule.*;
 import org.tripservice.trip.api.repositories.ScheduleRepository;
 import org.tripservice.trip.api.repositories.VehicleTypeRepository;
 import org.tripservice.trip.api.services.interfaces.ScheduleService;
@@ -117,15 +114,20 @@ public class DefaultScheduleService implements ScheduleService {
     @Override
     public ListResponse<ScheduleResponse> getSchedulesByFromAndTo(String from, String to) {
         List<Schedule> schedules;
-        if (from == null || to == null) {
-            schedules = scheduleRepository.findAll();
-        } else {
+
+        if (from != null && to != null) {
             schedules = scheduleRepository.findByRegionFromAndRegionTo(from, to);
+        } else if (from != null) {
+            schedules = scheduleRepository.findByRegionFrom(from);
+        } else {
+            schedules = scheduleRepository.findAll();
         }
+
         var result = schedules.stream()
                 .map(scheduleMapper::toResponse)
                 .sorted(Comparator.comparing(scheduleResponse -> scheduleResponse.getRegionFrom().getSlug()))
                 .collect(Collectors.toList());
+
         return ListResponse.<ScheduleResponse>builder()
                 .size(schedules.size())
                 .data(result)
@@ -185,4 +187,30 @@ public class DefaultScheduleService implements ScheduleService {
         return ((long) ((price + roundTo - 1) / roundTo) * roundTo);
     }
 
+
+    @Override
+    public ListResponse<ScheduleGroup> getSchedulesByFromAndToGroupByLocation(String from, String to) {
+        var schedules = scheduleRepository.findByRegionFromAndRegionTo(from, to);
+        var contrarySchedules = scheduleRepository.findByRegionFromAndRegionTo(to, from);
+        List<ScheduleGroup> result = new ArrayList<>();
+        schedules.forEach(schedule -> {
+            var scheduleList = contrarySchedules.stream()
+                    .filter(item -> {
+                        boolean condition = item.getFrom().getSlug().equals(schedule.getTo().getSlug())
+                                && item.getTo().getSlug().equals(schedule.getFrom().getSlug());
+                        return condition;
+                    })
+                    .collect(Collectors.toList());
+            scheduleList.forEach(item -> result.add(
+                    ScheduleGroup.builder()
+                            .schedule(scheduleMapper.toDetail(schedule))
+                            .contrarySchedule(scheduleMapper.toDetail(item))
+                            .build()
+            ));
+        });
+        return ListResponse.<ScheduleGroup>builder()
+                .size(result.size())
+                .data(result)
+                .build();
+    }
 }

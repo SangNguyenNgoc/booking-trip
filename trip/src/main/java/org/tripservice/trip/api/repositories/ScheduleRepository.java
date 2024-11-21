@@ -18,6 +18,9 @@ public interface ScheduleRepository extends MongoRepository<Schedule, String> {
     @Query("{'regionFrom.slug': ?0, 'regionTo.slug': ?1}")
     List<Schedule> findByRegionFromAndRegionTo(String from, String to);
 
+    @Query("{'regionFrom.slug': ?0}")
+    List<Schedule> findByRegionFrom(String from);
+
     @Query("{'regionFrom.slug': ?0, 'regionTo.slug': ?1, 'vehicleTypeId': { $in: ?2 }}")
     List<Schedule> findByRegionFromAndRegionTo(String from, String to, List<Long> vehicleTypeId);
 

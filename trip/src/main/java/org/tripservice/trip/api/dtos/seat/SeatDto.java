@@ -18,4 +18,5 @@ public class SeatDto implements Serializable {
     private Integer floorNo;
     private String name;
     private Boolean isReserved;
+    private Long price;
 }

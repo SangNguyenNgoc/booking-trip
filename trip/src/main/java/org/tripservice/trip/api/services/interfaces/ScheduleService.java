@@ -2,6 +2,7 @@ package org.tripservice.trip.api.services.interfaces;
 
 import org.tripservice.trip.api.dtos.location.RegionAndSchedule;
 import org.tripservice.trip.api.dtos.schedule.ScheduleDetail;
+import org.tripservice.trip.api.dtos.schedule.ScheduleGroup;
 import org.tripservice.trip.api.dtos.schedule.ScheduleRequest;
 import org.tripservice.trip.api.dtos.schedule.ScheduleResponse;
 import org.tripservice.trip.utils.dtos.ListResponse;
@@ -21,4 +22,6 @@ public interface ScheduleService {
     List<RegionAndSchedule> getPopularSchedule();
 
     ScheduleDetail getSchedule(String id);
+
+    ListResponse<ScheduleGroup> getSchedulesByFromAndToGroupByLocation(String from, String to);
 }

@@ -410,7 +410,7 @@ public class DefaultTripService implements TripService {
         var tripDetail = tripMapper.toDetail(trip);
         var scheduleDetail = scheduleMapper.toDetail(schedule);
         tripDetail.setSchedule(scheduleDetail);
-        tripDetail.setSeatData(mapSeat(vehicleType, trip.getSeatsReserved()));
+        tripDetail.setSeatData(mapSeat(vehicleType, trip.getSeatsReserved(), trip));
         return tripDetail;
     }
 
@@ -492,7 +492,7 @@ public class DefaultTripService implements TripService {
     }
 
 
-    public List<List<SeatRow>> mapSeat(VehicleType vehicleType, List<String> seatsReserved) {
+    public List<List<SeatRow>> mapSeat(VehicleType vehicleType, List<String> seatsReserved, Trip trip) {
         return vehicleType.getSeats().stream()
                 .map(seat -> SeatDto.builder()
                         .id(seat.getId())
@@ -501,6 +501,7 @@ public class DefaultTripService implements TripService {
                         .floorNo(seat.getFloorNo())
                         .name(seat.getName())
                         .isReserved(seatsReserved.contains(seat.getName()))
+                        .price(trip.getPrice())
                         .build())
                 .collect(groupingBy(SeatDto::getFloorNo))
                 .entrySet().stream()

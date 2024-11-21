@@ -8,6 +8,7 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import org.tripservice.trip.api.dtos.location.RegionAndSchedule;
 import org.tripservice.trip.api.dtos.schedule.ScheduleDetail;
+import org.tripservice.trip.api.dtos.schedule.ScheduleGroup;
 import org.tripservice.trip.api.dtos.schedule.ScheduleRequest;
 import org.tripservice.trip.api.dtos.schedule.ScheduleResponse;
 import org.tripservice.trip.api.services.interfaces.ScheduleService;
@@ -44,6 +45,20 @@ public class ScheduleController {
             @RequestParam(value = "to", required = false) String to
     ) {
         return ResponseEntity.ok(scheduleService.getSchedulesByFromAndToGrouping(from, to));
+    }
+
+
+    @Operation(
+            summary = "Get schedule by from, to grouping by location.",
+            description = "Get schedule by from, to grouping by location."
+    )
+    @GetMapping("/group/location")
+    @PreAuthorize("hasAuthority('SCOPE_ROLE_ADMIN')")
+    public ResponseEntity<ListResponse<ScheduleGroup>> getSchedulesGroupingByLocation(
+            @RequestParam(value = "from") String from,
+            @RequestParam(value = "to") String to
+    ) {
+        return ResponseEntity.ok(scheduleService.getSchedulesByFromAndToGroupByLocation(from, to));
     }
 
 
