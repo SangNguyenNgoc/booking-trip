@@ -138,6 +138,7 @@ class ProfileServiceImpl implements ProfileService{
     )
     public void createProfile(ProfileCreated profileCreated){
        profileRepository.save(Profile.builder()
+                .id(profileCreated.getProfileId())
                 .email(profileCreated.getEmail())
                 .fullname(profileCreated.getFullName())
                 .type("Customer")
@@ -154,7 +155,7 @@ class ProfileServiceImpl implements ProfileService{
         if (profile.isEmpty()) {
             var redisProfile = profileCreatedRedisService.getValue(userId, new TypeReference<ProfileCreated>() {});
             if(redisProfile == null) throw new DataNotFoundException(List.of("User not found"));
-            return profile.orElseGet(() -> mapper.toEntity(redisProfile));
+            return mapper.toEntity(redisProfile);
         }
         return profile.orElseThrow(() -> new DataNotFoundException(List.of("User not found")));
     }
