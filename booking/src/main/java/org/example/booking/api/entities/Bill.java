@@ -2,6 +2,7 @@ package org.example.booking.api.entities;
 
 import jakarta.persistence.*;
 import lombok.*;
+import org.example.booking.utils.auditing.TimestampEntity;
 
 import java.time.LocalDateTime;
 import java.util.Set;
@@ -13,7 +14,7 @@ import java.util.Set;
 @Getter
 @Entity
 @Table(name = "bills")
-public class Bill {
+public class Bill extends TimestampEntity {
     @Id
 //    @GeneratedValue(strategy = GenerationType.UUID)
     @Column(name = "id", nullable = false)

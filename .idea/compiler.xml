@@ -9,7 +9,7 @@
         <outputRelativeToContentRoot value="true" />
         <module name="notification" />
       </profile>
-      <profile name="Annotation profile for vehicle" enabled="true">
+      <profile name="Annotation profile for statistics" enabled="true">
         <sourceOutputDir name="target/generated-sources/annotations" />
         <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
         <outputRelativeToContentRoot value="true" />
@@ -22,6 +22,7 @@
         <module name="location" />
         <module name="booking" />
         <module name="trip" />
+        <module name="statistics" />
         <module name="vehicle" />
         <module name="profile" />
       </profile>
@@ -46,6 +47,7 @@
       <module name="location" options="-parameters" />
       <module name="notification" options="-parameters" />
       <module name="profile" options="-parameters" />
+      <module name="statistics" options="-parameters" />
       <module name="test" options="-parameters" />
       <module name="trip" options="-parameters" />
       <module name="vehicle" options="-parameters" />

@@ -1,5 +1,6 @@
 package org.example.profile.api.interfaces;
 
+import org.example.profile.api.dtos.ProfileCreated;
 import org.example.profile.api.dtos.ProfileResponse;
 import org.example.profile.api.entities.Profile;
 import org.example.profile.api.dtos.UpdateProfileRequest;
@@ -20,4 +21,6 @@ public interface ProfileMapper {
 
     @BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
     Profile partialUpdate(UpdateProfileRequest updateProfileRequest, @MappingTarget Profile profile);
+
+    Profile toEntity(ProfileCreated profileCreated);
 }

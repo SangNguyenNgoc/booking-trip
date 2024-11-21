@@ -4,6 +4,7 @@ import lombok.RequiredArgsConstructor;
 import org.example.booking.api.dtos.BillCreate;
 import org.example.booking.api.dtos.BillResponse;
 import org.example.booking.api.dtos.BillIsExpired;
+import org.example.booking.api.dtos.BillStatistics;
 import org.example.booking.api.entities.Bill;
 import org.example.booking.api.entities.BillStatus;
 import org.example.booking.api.entities.Ticket;
@@ -172,9 +173,14 @@ public class DefaultBillService implements BillService {
             if (bill.getFailureReason() != null) bill.setFailureReason(null);
             bill.setStatus(billStatus);
             bill.setPaymentAt(dateTime);
-            bill.getRoundTrip().setPaymentAt(dateTime);
-            bill.getRoundTrip().setStatus(billStatus);
-//            kafkaTemplate.send("TripIsPaid", tripIsPaid);
+            List<BillStatistics> billStatistics = new ArrayList<>(List.of(billMapper.toStatistics(bill)));
+            if (bill.getRoundTrip() != null){
+                bill.getRoundTrip().setPaymentAt(dateTime);
+                bill.getRoundTrip().setStatus(billStatus);
+                billStatistics.add(billMapper.toStatistics(bill.getRoundTrip()));
+            }
+            kafkaTemplate.send("BillCreated", billStatistics);
+            kafkaTemplate.send("PaymentNotification", billMapper.billToBillResponse(bill));
             return "Success";
         } else {
             String message = getMessage(responseCode, transactionStatus);
