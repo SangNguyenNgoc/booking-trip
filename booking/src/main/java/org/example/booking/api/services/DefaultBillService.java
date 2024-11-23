@@ -230,13 +230,45 @@ public class DefaultBillService implements BillService {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         Jwt jwt = (Jwt) authentication.getPrincipal();
         String userId = jwt.getClaim("sub");
-        var result = billRepository.findBillByProfileId(userId);
+        var bills = billRepository.findBillByProfileId(userId);
         return ListResponse.<BillGeneral>builder()
-                .data(result.stream()
-                        .map(billMapper::toBillGeneral)
+                .data(bills.stream()
+                        .map(bill -> {
+                            var billResult = billMapper.toBillGeneral(bill);
+                            if(bill.getRoundTrip() != null)
+                            {
+                                var trip = BillGeneral.TripGeneralDto.builder()
+                                        .id(bill.getTrip().getId())
+                                        .returnId(bill.getRoundTrip().getTrip().getId())
+                                        .locationFromName(bill.getTrip().getLocationFromName())
+                                        .locationToName(bill.getTrip().getLocationToName())
+                                        .regionFromName(bill.getTrip().getRegionFromName())
+                                        .regionToName(bill.getTrip().getRegionToName())
+                                        .startTime(bill.getTrip().getStartTime())
+                                        .returnTime(bill.getRoundTrip().getTrip().getStartTime())
+                                        .build();
+                                billResult.setTotalPrice(bill.getTotalPrice() + bill.getRoundTrip().getTotalPrice());
+                                billResult.setType("Khứ hồi");
+                                billResult.setTrip(trip);
+                            }else {
+                                var trip = BillGeneral.TripGeneralDto.builder()
+                                        .id(bill.getTrip().getId())
+                                        .returnId(null)
+                                        .locationFromName(bill.getTrip().getLocationFromName())
+                                        .locationToName(bill.getTrip().getLocationToName())
+                                        .regionFromName(bill.getTrip().getRegionFromName())
+                                        .regionToName(bill.getTrip().getRegionToName())
+                                        .startTime(bill.getTrip().getStartTime())
+                                        .returnTime(null)
+                                        .build();
+                                billResult.setType("Một chiều");
+                            }
+                            return billResult;
+                        }
+                        )
                         .toList()
                 )
-                .size(result.size())
+                .size(bills.size())
                 .build();
     }
 

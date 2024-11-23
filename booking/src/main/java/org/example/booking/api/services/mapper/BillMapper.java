@@ -29,5 +29,6 @@ public interface BillMapper {
 
     BillStatistics toStatistics(Bill bill);
 
+    @Mapping(source = "createDate", target = "createDate")
     BillGeneral toBillGeneral(Bill bill);
 }

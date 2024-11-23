@@ -5,6 +5,7 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.io.Serializable;
 import java.time.LocalDateTime;
 import java.util.Set;
 
@@ -22,4 +23,22 @@ public class BillGeneral {
     String passengerPhone;
     String passengerEmail;
     BillResponse.BillStatusDto status;
+    String type;
+    TripGeneralDto trip;
+    LocalDateTime createDate;
+
+    @Data
+    @Builder
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class TripGeneralDto implements Serializable {
+        String id;
+        String returnId;
+        LocalDateTime startTime;
+        LocalDateTime returnTime;
+        String regionFromName;
+        String regionToName;
+        String locationFromName;
+        String locationToName;
+    }
 }
