@@ -83,7 +83,13 @@ public class BillController {
         return ResponseEntity.ok(billService.getBillByIdAndPhoneNumber(billId, phoneNumber));
     }
 
+    @Operation(
+            summary = "Get bill was created by id",
+            description = "This endpoint allows get bill was created by id",
+            security = @SecurityRequirement(name = "Bearer Authentication")
+    )
     @GetMapping("/{id}")
+    @PreAuthorize("isAuthenticated()")
     public ResponseEntity<BillResponse> getById(@PathVariable String id){
         return ResponseEntity.ok(billService.getBillById(id));
     }
