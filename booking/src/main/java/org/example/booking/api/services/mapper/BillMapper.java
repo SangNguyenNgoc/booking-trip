@@ -14,21 +14,18 @@ public interface BillMapper {
     @BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
     Ticket partialUpdate(Ticket ticketDto, @MappingTarget Ticket ticket);
 
-    Bill toEntity(BillResponse billResponse);
-
     @AfterMapping
     default void linkTickets(@MappingTarget Bill bill) {
         bill.getTickets().forEach(ticket -> ticket.setBill(bill));
     }
 
     @Mapping(target = "roundTrip", source = "roundTrip")
+    @Mapping(target = "status", source = "status.name")
     BillResponse billToBillResponse(Bill bill);
-
-    @BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
-    Bill partialUpdate(BillResponse billResponse, @MappingTarget Bill bill);
 
     BillStatistics toStatistics(Bill bill);
 
     @Mapping(source = "createDate", target = "createDate")
+    @Mapping(source = "status.name", target = "status")
     BillGeneral toBillGeneral(Bill bill);
 }

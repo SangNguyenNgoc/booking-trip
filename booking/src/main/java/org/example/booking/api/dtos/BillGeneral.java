@@ -22,7 +22,7 @@ public class BillGeneral {
     String passengerName;
     String passengerPhone;
     String passengerEmail;
-    BillResponse.BillStatusDto status;
+    String status;
     String type;
     TripGeneralDto trip;
     LocalDateTime createDate;

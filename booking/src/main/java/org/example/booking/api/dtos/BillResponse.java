@@ -23,7 +23,7 @@ public class BillResponse implements Serializable {
     String passengerPhone;
     String passengerEmail;
     Set<TicketDto> tickets;
-    BillStatusDto status;
+    String status;
     TripDto trip;
     BillResponse roundTrip;
 
@@ -38,17 +38,6 @@ public class BillResponse implements Serializable {
         String id;
         String seatName;
         Double price;
-    }
-
-    /**
-     * DTO for {@link org.example.booking.api.entities.BillStatus}
-     */
-    @Data
-    @Builder
-    @NoArgsConstructor
-    @AllArgsConstructor
-    public static class BillStatusDto implements Serializable {
-        String name;
     }
 
     /**
