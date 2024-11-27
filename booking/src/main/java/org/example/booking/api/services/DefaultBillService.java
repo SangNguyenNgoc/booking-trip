@@ -20,6 +20,7 @@ import org.example.booking.utils.exception.DataNotFoundException;
 import org.example.booking.utils.exception.InputInvalidException;
 import org.example.booking.utils.services.AppUtils;
 import org.example.booking.utils.services.VnPayService;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.security.core.Authentication;
@@ -47,6 +48,8 @@ public class DefaultBillService implements BillService {
     private final BillMapper billMapper;
     private final VariableConfig variableConfig;
     private final KafkaTemplate<String, Object> kafkaTemplate;
+    @Value("${url.fe-url}")
+    private String feUrl;
 
     private Map<String, String> getStringStringMap() {
         var responseCodeMessages = new HashMap<String, String>();
@@ -158,9 +161,8 @@ public class DefaultBillService implements BillService {
     @Transactional
     @Override
     public String payment(String id, String responseCode, String transactionStatus, String paymentAt) {
-        Bill bill = billRepository.findByIdAndStatusId(id, 1).orElseThrow(
-                () -> new DataNotFoundException(List.of("Bill not found"))
-        );
+        Bill bill = billRepository.findByIdAndStatusId(id, 1).orElse(null);
+        if (bill == null) return feUrl;
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyyMMddHHmmss");
         LocalDateTime dateTime = LocalDateTime.parse(paymentAt, formatter);
         if (responseCode.equals("00") && transactionStatus.equals("00")) {
@@ -178,13 +180,13 @@ public class DefaultBillService implements BillService {
             }
             kafkaTemplate.send("BillCreated", billStatistics);
             kafkaTemplate.send("PaymentNotification", billMapper.billToBillResponse(bill));
-            return "Success";
+            return feUrl + "/tai-khoan/hoa-don/" + bill.getId();
         } else {
             String message = getMessage(responseCode, transactionStatus);
             bill.setFailureReason(message);
             bill.setFailureAt(dateTime);
             bill.setFailure(true);
-            return message;
+            return feUrl + "?error=" + message;
         }
     }
 
@@ -274,12 +276,16 @@ public class DefaultBillService implements BillService {
 
     @Override
     public BillResponse getBillById(String id){
+        Optional<Bill> result;
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        Jwt jwt = (Jwt) authentication.getPrincipal();
-        String userId = jwt.getClaim("sub");
-        var result = billRepository.findByIdAndProfileId(id, userId)
-                .orElseThrow(() -> new DataNotFoundException(List.of("Not found bill with id " + id)));
-        return billMapper.billToBillResponse(result);
+        if (authentication.getPrincipal() instanceof Jwt jwt) {
+            String userId = jwt.getClaim("sub");
+            result = billRepository.findByIdAndProfileId(id, userId);
+        }else {
+            result = billRepository.findByIdAndProfileIdIsNull(id);
+        }
+        return billMapper.billToBillResponse(result
+                .orElseThrow(() -> new DataNotFoundException(List.of("Not found bill with id " + id))));
     }
 
     @Override
