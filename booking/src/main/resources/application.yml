@@ -72,6 +72,7 @@ management:
 url:
   base-url: ${SSL}://${DOMAIN}/api/v1
   auth-url: ${AUTH_DOMAIN}
+  fe-url: ${SSL}://${FE_DOMAIN}
 
 springdoc:
   swagger-ui:

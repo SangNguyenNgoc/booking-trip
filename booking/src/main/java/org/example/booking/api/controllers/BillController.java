@@ -9,9 +9,13 @@ import org.example.booking.api.dtos.BillGeneral;
 import org.example.booking.api.dtos.BillResponse;
 import org.example.booking.api.services.interfaces.BillService;
 import org.example.booking.utils.dtos.ListResponse;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
+
+import java.net.URI;
 
 @RestController
 @RequestMapping("/bills")
@@ -31,7 +35,7 @@ public class BillController {
 
     @GetMapping("/payment")
     @Hidden
-    public ResponseEntity<String> handlePayment(
+    public ResponseEntity<Void> handlePayment(
             @RequestParam("vnp_Amount") String amount,
             @RequestParam("vnp_BankCode") String bankCode,
             @RequestParam("vnp_BankTranNo") String bankTranNo,
@@ -45,7 +49,14 @@ public class BillController {
             @RequestParam("vnp_TxnRef") String txnRef,
             @RequestParam("vnp_SecureHash") String secureHash
     ) {
-        return ResponseEntity.ok(billService.payment(txnRef, responseCode, transactionStatus, payDate));
+        String redirectUrl = billService.payment(txnRef, responseCode, transactionStatus, payDate);
+
+        // Tạo header Location để chuyển hướng
+        HttpHeaders headers = new HttpHeaders();
+        headers.setLocation(URI.create(redirectUrl));
+
+        // Trả về phản hồi với mã trạng thái 302 (Found)
+        return ResponseEntity.status(HttpStatus.FOUND).headers(headers).build();
     }
 
     @Operation(
@@ -89,7 +100,6 @@ public class BillController {
             security = @SecurityRequirement(name = "Bearer Authentication")
     )
     @GetMapping("/{id}")
-    @PreAuthorize("isAuthenticated()")
     public ResponseEntity<BillResponse> getById(@PathVariable String id){
         return ResponseEntity.ok(billService.getBillById(id));
     }

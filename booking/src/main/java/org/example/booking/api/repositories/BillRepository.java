@@ -44,4 +44,11 @@ public interface BillRepository extends JpaRepository<Bill, String> {
             "join fetch b.tickets tk " +
             "where b.passengerPhone like concat('%', ?2, '%') and b.id = ?1")
     Optional<Bill> findBillByPhoneNumberAndId(String billId, String phoneNumber);
+
+    @Query("select b from Bill b " +
+            "join fetch b.trip t " +
+            "join fetch b.tickets tk " +
+            "left join fetch b.roundTrip " +
+            "where b.id =?1 and b.profileId is null")
+    Optional<Bill> findByIdAndProfileIdIsNull(String id);
 }
