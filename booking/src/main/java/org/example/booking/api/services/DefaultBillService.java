@@ -1,10 +1,7 @@
 package org.example.booking.api.services;
 
 import lombok.RequiredArgsConstructor;
-import org.example.booking.api.dtos.BillCreate;
-import org.example.booking.api.dtos.BillResponse;
-import org.example.booking.api.dtos.BillIsExpired;
-import org.example.booking.api.dtos.BillStatistics;
+import org.example.booking.api.dtos.*;
 import org.example.booking.api.entities.Bill;
 import org.example.booking.api.entities.BillStatus;
 import org.example.booking.api.entities.Ticket;
@@ -229,18 +226,60 @@ public class DefaultBillService implements BillService {
     }
 
     @Override
-    public ListResponse<BillResponse> getBillByUser() {
+    public ListResponse<BillGeneral> getBillByUser() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         Jwt jwt = (Jwt) authentication.getPrincipal();
         String userId = jwt.getClaim("sub");
-        var result = billRepository.findBillByProfileId(userId);
-        return ListResponse.<BillResponse>builder()
-                .data(result.stream()
-                        .map(billMapper::billToBillResponse)
+        var bills = billRepository.findBillByProfileId(userId);
+        return ListResponse.<BillGeneral>builder()
+                .data(bills.stream()
+                        .map(bill -> {
+                            var billResult = billMapper.toBillGeneral(bill);
+                            if(bill.getRoundTrip() != null)
+                            {
+                                var trip = BillGeneral.TripGeneralDto.builder()
+                                        .id(bill.getTrip().getId())
+                                        .returnId(bill.getRoundTrip().getTrip().getId())
+                                        .locationFromName(bill.getTrip().getLocationFromName())
+                                        .locationToName(bill.getTrip().getLocationToName())
+                                        .regionFromName(bill.getTrip().getRegionFromName())
+                                        .regionToName(bill.getTrip().getRegionToName())
+                                        .startTime(bill.getTrip().getStartTime())
+                                        .returnTime(bill.getRoundTrip().getTrip().getStartTime())
+                                        .build();
+                                billResult.setTotalPrice(bill.getTotalPrice() + bill.getRoundTrip().getTotalPrice());
+                                billResult.setType("Khứ hồi");
+                                billResult.setTrip(trip);
+                            }else {
+                                var trip = BillGeneral.TripGeneralDto.builder()
+                                        .id(bill.getTrip().getId())
+                                        .returnId(null)
+                                        .locationFromName(bill.getTrip().getLocationFromName())
+                                        .locationToName(bill.getTrip().getLocationToName())
+                                        .regionFromName(bill.getTrip().getRegionFromName())
+                                        .regionToName(bill.getTrip().getRegionToName())
+                                        .startTime(bill.getTrip().getStartTime())
+                                        .returnTime(null)
+                                        .build();
+                                billResult.setType("Một chiều");
+                            }
+                            return billResult;
+                        }
+                        )
                         .toList()
                 )
-                .size(result.size())
+                .size(bills.size())
                 .build();
+    }
+
+    @Override
+    public BillResponse getBillById(String id){
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        Jwt jwt = (Jwt) authentication.getPrincipal();
+        String userId = jwt.getClaim("sub");
+        var result = billRepository.findByIdAndProfileId(id, userId)
+                .orElseThrow(() -> new DataNotFoundException(List.of("Not found bill with id " + id)));
+        return billMapper.billToBillResponse(result);
     }
 
     @Override
