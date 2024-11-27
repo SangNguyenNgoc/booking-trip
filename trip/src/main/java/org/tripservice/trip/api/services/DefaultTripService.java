@@ -271,7 +271,11 @@ public class DefaultTripService implements TripService {
                         scheduleResponse.setDuration((double) duration.toMinutes());
                     }
 
-                    scheduleResponse.setTrips(filteredTrips.stream().map(tripMapper::toInfo).collect(Collectors.toList()));
+                    scheduleResponse.setTrips(filteredTrips.stream()
+                            .filter(item -> item.getStartTime().isAfter(LocalDateTime.now()))
+                            .map(tripMapper::toInfo)
+                            .collect(Collectors.toList())
+                    );
                 })
                 .collect(Collectors.toList());
 
