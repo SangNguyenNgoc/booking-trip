@@ -124,6 +124,7 @@ public class DefaultBillService implements BillService {
         newBill.setPaymentUrl(paymentUrl);
         billRepository.save(newBill);
         kafkaTemplate.send("BillIsBooked", listTrip);
+        if(newBill.getProfileId() == null) kafkaTemplate.send("NotificationBillIsBooked", billMapper.billToBillResponse(newBill));
         return paymentUrl;
     }
 
@@ -264,6 +265,7 @@ public class DefaultBillService implements BillService {
                                         .returnTime(null)
                                         .build();
                                 billResult.setType("Một chiều");
+                                billResult.setTrip(trip);
                             }
                             return billResult;
                         }

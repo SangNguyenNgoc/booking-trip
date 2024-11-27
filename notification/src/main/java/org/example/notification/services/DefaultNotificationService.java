@@ -23,7 +23,6 @@ import java.util.Map;
 public class DefaultNotificationService {
     private final MailService mailService;
     private final TemplateEngine templateEngine;
-    private final KafkaTemplate<String, Object> kafkaTemplate;
 
     @Value("${url.auth-url}")
     private String authUri;
@@ -97,6 +96,31 @@ public class DefaultNotificationService {
             ));
             String text = templateEngine.process("forgotPassword", context);
             mailService.sendEmailHtml(forgotPassword.getEmail(), "Quên mật khẩu", text);
+        } catch (Exception e) {
+            log.error(e.getMessage());
+        }
+    }
+
+    @KafkaListener(topics = "NotificationBillIsBooked")
+    public void billBooked(PaymentNotification paymentNotification){
+        try {
+            Context context = new Context();
+            var total = paymentNotification.getTotalPrice();
+            var bills = new ArrayList<>(List.of(paymentNotification));
+            if (paymentNotification.getRoundTrip() != null){
+                total += paymentNotification.getRoundTrip().getTotalPrice();
+                bills.add(paymentNotification.getRoundTrip());
+            }
+            context.setVariables(Map.of(
+                    "bills", bills,
+                    "email", paymentNotification.getPassengerEmail(),
+                    "name", paymentNotification.getPassengerName(),
+                    "phone", paymentNotification.getPassengerPhone(),
+                    "total", total,
+                    "url", paymentNotification.getPaymentUrl()
+            ));
+            String text = templateEngine.process("booked", context);
+            mailService.sendEmailHtml(paymentNotification.getPassengerEmail(), "Thông tin thanh toán", text);
         } catch (Exception e) {
             log.error(e.getMessage());
         }
