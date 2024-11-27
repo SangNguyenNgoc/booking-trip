@@ -26,6 +26,7 @@ public class BillResponse implements Serializable {
     String status;
     TripDto trip;
     BillResponse roundTrip;
+    LocalDateTime createDate;
 
     /**
      * DTO for {@link org.example.booking.api.entities.Ticket}

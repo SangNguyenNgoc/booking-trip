@@ -21,6 +21,7 @@ public interface BillMapper {
 
     @Mapping(target = "roundTrip", source = "roundTrip")
     @Mapping(target = "status", source = "status.name")
+    @Mapping(source = "createDate", target = "createDate")
     BillResponse billToBillResponse(Bill bill);
 
     BillStatistics toStatistics(Bill bill);
