@@ -12,6 +12,7 @@ import org.example.vehicle.api.entities.VehicleType;
 import org.example.vehicle.api.entities.enums.VehicleStatus;
 import org.example.vehicle.api.repositories.VehicleRepository;
 import org.example.vehicle.api.repositories.VehicleTypeRepository;
+import org.example.vehicle.api.repositories.specifications.VehicleSpecifications;
 import org.example.vehicle.api.services.interfaces.VehicleService;
 import org.example.vehicle.api.services.mappers.VehicleMapper;
 import org.example.vehicle.clients.LocationClient;
@@ -22,6 +23,7 @@ import org.example.vehicle.utils.exception.DataNotFoundException;
 import org.example.vehicle.utils.exception.InputInvalidException;
 import org.example.vehicle.utils.services.ObjectsValidator;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -41,6 +43,7 @@ public class DefaultVehicleService implements VehicleService {
 
     VehicleRepository vehicleRepository;
     VehicleTypeRepository vehicleTypeRepository;
+    VehicleSpecifications vehicleSpecifications;
 
     LocationClient locationClient;
 
@@ -60,6 +63,7 @@ public class DefaultVehicleService implements VehicleService {
         return vehicleRepository.findAllLicensePlatesByType(typeId);
     }
 
+
     @Override
     public PageResponse<VehicleInfo> getAllVehiclesByCondition(String belongTo, Long typeId, String status) {
         List<Supplier<PageResponse<VehicleInfo>>> conditions = Arrays.asList(
@@ -78,6 +82,7 @@ public class DefaultVehicleService implements VehicleService {
                 .findFirst()
                 .orElseThrow(() -> new DataNotFoundException(List.of("No matching condition")));
     }
+
 
     @Override
     public PageResponse<VehicleInfo> getAllVehiclesByCondition(
@@ -99,6 +104,7 @@ public class DefaultVehicleService implements VehicleService {
                 .findFirst()
                 .orElseThrow(() -> new DataNotFoundException(List.of("No matching condition")));
     }
+
 
     @Override
     public PageResponse<VehicleInfo> getAllVehicles() {
@@ -145,6 +151,7 @@ public class DefaultVehicleService implements VehicleService {
                 .build();
     }
 
+
     @Override
     public PageResponse<VehicleInfo> getAllVehiclesByBelongTo(Integer pageNo, Integer pageSize, String belongTo) {
         PageRequest page = PageRequest.of(pageNo, pageSize);
@@ -160,9 +167,12 @@ public class DefaultVehicleService implements VehicleService {
                 .build();
     }
 
+
     @Override
     public PageResponse<VehicleInfo> getAllVehiclesByBelongToAndType(String belongTo, Long typeId) {
-        var vehicles = vehicleRepository.findAllByBelongToAndType(belongTo, typeId);
+        Specification<Vehicle> spec = Specification.where(vehicleSpecifications.beLongToAt(belongTo))
+                .and(vehicleSpecifications.hasTypeId(typeId));
+        var vehicles = vehicleRepository.findAll(spec);
         var vehicleList = ListResponse.<VehicleInfo>builder()
                 .size(vehicles.size())
                 .data(vehicles.stream().map(vehicleMapper::toInfo).collect(Collectors.toList()))
@@ -174,10 +184,13 @@ public class DefaultVehicleService implements VehicleService {
                 .build();
     }
 
+
     @Override
     public PageResponse<VehicleInfo> getAllVehiclesByBelongToAndType(Integer pageNo, Integer pageSize, String belongTo, Long typeId) {
+        Specification<Vehicle> spec = Specification.where(vehicleSpecifications.beLongToAt(belongTo))
+                .and(vehicleSpecifications.hasTypeId(typeId));
         PageRequest page = PageRequest.of(pageNo, pageSize);
-        var vehicles = vehicleRepository.findAllByBelongToAndType(belongTo, typeId, page);
+        var vehicles = vehicleRepository.findAll(spec, page);
         var vehicleList = ListResponse.<VehicleInfo>builder()
                 .size(vehicles.getSize())
                 .data(vehicles.stream().map(vehicleMapper::toInfo).collect(Collectors.toList()))
@@ -189,9 +202,13 @@ public class DefaultVehicleService implements VehicleService {
                 .build();
     }
 
+
     @Override
     public PageResponse<VehicleInfo> getAllVehiclesByBelongToAndTypeAndStatus(String belongTo, Long typeId, String status) {
-        var vehicles = vehicleRepository.findAllByBelongAndTypeAndStatus(belongTo, typeId, VehicleStatus.valueOf(status));
+        Specification<Vehicle> spec = Specification.where(vehicleSpecifications.beLongToAt(belongTo))
+                .and(vehicleSpecifications.hasTypeId(typeId))
+                .and(vehicleSpecifications.hasStatus(VehicleStatus.valueOf(status)));
+        var vehicles = vehicleRepository.findAll(spec);
         var vehicleList = ListResponse.<VehicleInfo>builder()
                 .size(vehicles.size())
                 .data(vehicles.stream().map(vehicleMapper::toInfo).collect(Collectors.toList()))
@@ -202,11 +219,15 @@ public class DefaultVehicleService implements VehicleService {
                 .data(vehicleList)
                 .build();
     }
+
 
     @Override
     public PageResponse<VehicleInfo> getAllVehiclesByBelongToAndTypeAndStatus(Integer pageNo, Integer pageSize, String belongTo, Long typeId, String status) {
         PageRequest page = PageRequest.of(pageNo, pageSize);
-        var vehicles = vehicleRepository.findAllByBelongAndTypeAndStatus(belongTo, typeId, VehicleStatus.valueOf(status), page);
+        Specification<Vehicle> spec = Specification.where(vehicleSpecifications.beLongToAt(belongTo))
+                .and(vehicleSpecifications.hasTypeId(typeId))
+                .and(vehicleSpecifications.hasStatus(VehicleStatus.valueOf(status)));
+        var vehicles = vehicleRepository.findAll(spec, page);
         var vehicleList = ListResponse.<VehicleInfo>builder()
                 .size(vehicles.getSize())
                 .data(vehicles.stream().map(vehicleMapper::toInfo).collect(Collectors.toList()))
@@ -217,6 +238,7 @@ public class DefaultVehicleService implements VehicleService {
                 .data(vehicleList)
                 .build();
     }
+
 
     @Override
     public VehicleDetail getVehicleDetailById(Long id) {

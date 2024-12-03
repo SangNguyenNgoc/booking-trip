@@ -8,7 +8,6 @@ import org.example.vehicle.api.dtos.vehicle.VehicleDetail;
 import org.example.vehicle.api.dtos.vehicle.VehicleInfo;
 import org.example.vehicle.api.services.interfaces.VehicleService;
 import org.example.vehicle.utils.dtos.PageResponse;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
