@@ -2,6 +2,7 @@ package org.example.booking.api.repositories;
 
 import org.example.booking.api.entities.Bill;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
@@ -10,7 +11,7 @@ import java.util.List;
 import java.util.Optional;
 
 @Repository
-public interface BillRepository extends JpaRepository<Bill, String> {
+public interface BillRepository extends JpaRepository<Bill, String>, JpaSpecificationExecutor<Bill> {
     @Query("select b from Bill b where b.id = ?1 and b.status.id = ?2")
     Optional<Bill> findByIdAndStatusId(String id, Integer id1);
 
@@ -36,8 +37,8 @@ public interface BillRepository extends JpaRepository<Bill, String> {
     @Query("select b from Bill b " +
             "join fetch b.trip t " +
             "join fetch b.tickets tk " +
-            "where b.passengerPhone like concat('%', ?1, '%')")
-    List<Bill> findBillByPhoneNumber(String phoneNumber);
+            "where b.id = ?1")
+    Optional<Bill> findBillById(String id);
 
     @Query("select b from Bill b " +
             "join fetch b.trip t " +

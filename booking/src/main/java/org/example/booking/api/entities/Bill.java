@@ -68,7 +68,7 @@ public class Bill extends TimestampEntity {
     )
     private BillStatus status;
 
-    @ManyToOne(fetch = FetchType.LAZY, cascade = CascadeType.PERSIST)
+    @ManyToOne(fetch = FetchType.EAGER, cascade = CascadeType.PERSIST)
     @JoinColumn(
             name = "trip_id",
             referencedColumnName = "id",

@@ -9,6 +9,9 @@ import org.example.booking.api.dtos.BillGeneral;
 import org.example.booking.api.dtos.BillResponse;
 import org.example.booking.api.services.interfaces.BillService;
 import org.example.booking.utils.dtos.ListResponse;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -16,6 +19,7 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.net.URI;
+import java.time.LocalDateTime;
 
 @RestController
 @RequestMapping("/bills")
@@ -71,14 +75,14 @@ public class BillController {
     }
 
     @Operation(
-            summary = "Get all bill was created with phone number",
-            description = "This endpoint allows admin get all bill was created with phone number",
+            summary = "Get bill detail",
+            description = "This endpoint allows admin get bill detail",
             security = @SecurityRequirement(name = "Bearer Authentication")
     )
-    @GetMapping("admin/search")
+    @GetMapping("admin/{id}")
     @PreAuthorize("hasAuthority('SCOPE_ROLE_ADMIN')")
-    public ResponseEntity<ListResponse<BillResponse>> getBillsByQuery(@RequestParam("phoneNumber") String phoneNumber){
-        return ResponseEntity.ok(billService.getBillByPhoneNumber(phoneNumber));
+    public ResponseEntity<BillResponse> getBillsByQuery(@PathVariable String id){
+        return ResponseEntity.ok(billService.getBillByIdAdmin(id));
     }
 
     @Operation(
@@ -102,5 +106,25 @@ public class BillController {
     @GetMapping("/{id}")
     public ResponseEntity<BillResponse> getById(@PathVariable String id){
         return ResponseEntity.ok(billService.getBillById(id));
+    }
+
+    @Operation(
+            summary = "Search bill of admin",
+            description = "This endpoint allows admin get fillter bill",
+            security = @SecurityRequirement(name = "Bearer Authentication")
+    )
+    @PreAuthorize("hasAuthority('SCOPE_ROLE_ADMIN')")
+    @GetMapping("admin/search")
+    public ResponseEntity<Page<BillGeneral>> searchBill(
+            @RequestParam(required = false) @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss") LocalDateTime from,
+            @RequestParam(required = false) @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss") LocalDateTime to,
+            @RequestParam(required = false) Integer status,
+            @RequestParam(required = false) String phoneNumber,
+            @RequestParam(required = false) @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss") LocalDateTime tripFrom,
+            @RequestParam(required = false) @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss") LocalDateTime tripTo,
+            Pageable pageable
+    ) {
+        Page<BillGeneral> results = billService.searchBill(from, to, status, phoneNumber, tripFrom, tripTo, pageable);
+        return ResponseEntity.ok(results);
     }
 }

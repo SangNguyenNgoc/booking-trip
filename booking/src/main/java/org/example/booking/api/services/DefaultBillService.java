@@ -12,7 +12,9 @@ import org.example.booking.api.repositories.TicketRepository;
 import org.example.booking.api.repositories.TripRepository;
 import org.example.booking.api.services.interfaces.BillService;
 import org.example.booking.api.services.mapper.BillMapper;
+import org.example.booking.api.services.mapper.BillStatusMapper;
 import org.example.booking.api.services.mapper.TripMapper;
+import org.example.booking.api.specifications.BillSpecification;
 import org.example.booking.clients.TripClient;
 import org.example.booking.config.VariableConfig;
 import org.example.booking.utils.dtos.ListResponse;
@@ -21,6 +23,9 @@ import org.example.booking.utils.exception.InputInvalidException;
 import org.example.booking.utils.services.AppUtils;
 import org.example.booking.utils.services.VnPayService;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.security.core.Authentication;
@@ -46,6 +51,7 @@ public class DefaultBillService implements BillService {
     private final TripClient tripClient;
     private final TripMapper tripMapper;
     private final BillMapper billMapper;
+    private final BillStatusMapper billStatusMapper;
     private final VariableConfig variableConfig;
     private final KafkaTemplate<String, Object> kafkaTemplate;
     @Value("${url.fe-url}")
@@ -236,40 +242,7 @@ public class DefaultBillService implements BillService {
         var bills = billRepository.findBillByProfileId(userId);
         return ListResponse.<BillGeneral>builder()
                 .data(bills.stream()
-                        .map(bill -> {
-                            var billResult = billMapper.toBillGeneral(bill);
-                            if(bill.getRoundTrip() != null)
-                            {
-                                var trip = BillGeneral.TripGeneralDto.builder()
-                                        .id(bill.getTrip().getId())
-                                        .returnId(bill.getRoundTrip().getTrip().getId())
-                                        .locationFromName(bill.getTrip().getLocationFromName())
-                                        .locationToName(bill.getTrip().getLocationToName())
-                                        .regionFromName(bill.getTrip().getRegionFromName())
-                                        .regionToName(bill.getTrip().getRegionToName())
-                                        .startTime(bill.getTrip().getStartTime())
-                                        .returnTime(bill.getRoundTrip().getTrip().getStartTime())
-                                        .build();
-                                billResult.setTotalPrice(bill.getTotalPrice() + bill.getRoundTrip().getTotalPrice());
-                                billResult.setType("Khứ hồi");
-                                billResult.setTrip(trip);
-                            }else {
-                                var trip = BillGeneral.TripGeneralDto.builder()
-                                        .id(bill.getTrip().getId())
-                                        .returnId(null)
-                                        .locationFromName(bill.getTrip().getLocationFromName())
-                                        .locationToName(bill.getTrip().getLocationToName())
-                                        .regionFromName(bill.getTrip().getRegionFromName())
-                                        .regionToName(bill.getTrip().getRegionToName())
-                                        .startTime(bill.getTrip().getStartTime())
-                                        .returnTime(null)
-                                        .build();
-                                billResult.setType("Một chiều");
-                                billResult.setTrip(trip);
-                            }
-                            return billResult;
-                        }
-                        )
+                        .map(this::mapToBillGenerate)
                         .toList()
                 )
                 .size(bills.size())
@@ -291,15 +264,10 @@ public class DefaultBillService implements BillService {
     }
 
     @Override
-    public ListResponse<BillResponse> getBillByPhoneNumber(String phoneNumber) {
-        var result = billRepository.findBillByPhoneNumber(phoneNumber);
-        return ListResponse.<BillResponse>builder()
-                .data(result.stream()
-                        .map(billMapper::billToBillResponse)
-                        .toList()
-                )
-                .size(result.size())
-                .build();
+    public BillResponse getBillByIdAdmin(String id) {
+        var result = billRepository.findBillById(id)
+                .orElseThrow(() -> new DataNotFoundException(List.of("Bill with id" + id + "not found")));
+        return billMapper.billToBillResponse(result);
     }
 
     @Override
@@ -308,6 +276,67 @@ public class DefaultBillService implements BillService {
                 () -> new DataNotFoundException(List.of("Data Invalid"))
         );
         return billMapper.billToBillResponse(result);
+    }
+
+    @Override
+    public List<BillStatusResponse> getBillStatus(){
+        return billStatusRepository.findAll().stream()
+                .map(billStatusMapper::toResponse)
+                .toList();
+    }
+
+    @Override
+    public Page<BillGeneral> searchBill(
+            LocalDateTime from,
+            LocalDateTime to,
+            Integer status,
+            String phoneNumber,
+            LocalDateTime tripFrom,
+            LocalDateTime tripTo,
+            Pageable pageable
+    ){
+
+        Specification<Bill> spec = Specification.where(BillSpecification.createdBetween(from, to))
+                .and(BillSpecification.hasPhoneNumber(phoneNumber))
+                .and(BillSpecification.hasStatus(status))
+                .and(BillSpecification.hasTripStartTimeBetween(tripFrom, tripTo))
+                .and(BillSpecification.parentIsNull());
+        var bills = billRepository.findAll(spec, pageable);
+        return bills.map(billMapper::toBillGeneral);
+    }
+
+    private BillGeneral mapToBillGenerate(Bill bill){
+        var billResult = billMapper.toBillGeneral(bill);
+        if(bill.getRoundTrip() != null)
+        {
+            var trip = BillGeneral.TripGeneralDto.builder()
+                    .id(bill.getTrip().getId())
+                    .returnId(bill.getRoundTrip().getTrip().getId())
+                    .locationFromName(bill.getTrip().getLocationFromName())
+                    .locationToName(bill.getTrip().getLocationToName())
+                    .regionFromName(bill.getTrip().getRegionFromName())
+                    .regionToName(bill.getTrip().getRegionToName())
+                    .startTime(bill.getTrip().getStartTime())
+                    .returnTime(bill.getRoundTrip().getTrip().getStartTime())
+                    .build();
+            billResult.setTotalPrice(bill.getTotalPrice() + bill.getRoundTrip().getTotalPrice());
+            billResult.setType("Khứ hồi");
+            billResult.setTrip(trip);
+        }else {
+            var trip = BillGeneral.TripGeneralDto.builder()
+                    .id(bill.getTrip().getId())
+                    .returnId(null)
+                    .locationFromName(bill.getTrip().getLocationFromName())
+                    .locationToName(bill.getTrip().getLocationToName())
+                    .regionFromName(bill.getTrip().getRegionFromName())
+                    .regionToName(bill.getTrip().getRegionToName())
+                    .startTime(bill.getTrip().getStartTime())
+                    .returnTime(null)
+                    .build();
+            billResult.setType("Một chiều");
+            billResult.setTrip(trip);
+        }
+        return billResult;
     }
 
 }
