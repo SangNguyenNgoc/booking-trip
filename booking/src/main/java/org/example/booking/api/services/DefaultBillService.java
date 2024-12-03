@@ -279,10 +279,14 @@ public class DefaultBillService implements BillService {
     }
 
     @Override
-    public List<BillStatusResponse> getBillStatus(){
-        return billStatusRepository.findAll().stream()
-                .map(billStatusMapper::toResponse)
-                .toList();
+    public ListResponse<BillStatusResponse> getBillStatus(){
+        var billStatuses = billStatusRepository.findAll();
+        return ListResponse.<BillStatusResponse>builder()
+                .data(billStatuses.stream()
+                        .map(billStatusMapper::toResponse).
+                        toList())
+                .size(billStatuses.size())
+                .build();
     }
 
     @Override

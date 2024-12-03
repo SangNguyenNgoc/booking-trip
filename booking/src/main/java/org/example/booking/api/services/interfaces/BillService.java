@@ -18,7 +18,7 @@ public interface BillService {
     BillResponse getBillByIdAdmin(String id);
     public BillResponse getBillByIdAndPhoneNumber(String billId, String phoneNumber);
     BillResponse getBillById(String id);
-    List<BillStatusResponse> getBillStatus();
+    ListResponse<BillStatusResponse> getBillStatus();
     Page<BillGeneral> searchBill(
             LocalDateTime from,
             LocalDateTime to,

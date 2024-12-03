@@ -7,6 +7,7 @@ import lombok.RequiredArgsConstructor;
 import org.example.booking.api.dtos.BillCreate;
 import org.example.booking.api.dtos.BillGeneral;
 import org.example.booking.api.dtos.BillResponse;
+import org.example.booking.api.dtos.BillStatusResponse;
 import org.example.booking.api.services.interfaces.BillService;
 import org.example.booking.utils.dtos.ListResponse;
 import org.springframework.data.domain.Page;
@@ -126,5 +127,16 @@ public class BillController {
     ) {
         Page<BillGeneral> results = billService.searchBill(from, to, status, phoneNumber, tripFrom, tripTo, pageable);
         return ResponseEntity.ok(results);
+    }
+
+    @Operation(
+            summary = "Get all bill status",
+            description = "This endpoint allows get bill status",
+            security = @SecurityRequirement(name = "Bearer Authentication")
+    )
+    @PreAuthorize("hasAuthority('SCOPE_ROLE_ADMIN')")
+    @GetMapping("status")
+    public ResponseEntity<ListResponse<BillStatusResponse>> getBillStatus(){
+        return ResponseEntity.ok(billService.getBillStatus());
     }
 }
