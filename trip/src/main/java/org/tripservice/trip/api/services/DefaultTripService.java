@@ -250,21 +250,32 @@ public class DefaultTripService implements TripService {
         var scheduleResponses = schedules.stream()
                 .map(scheduleMapper::toResponse)
                 .peek(scheduleResponse -> {
+//                    List<Trip> filteredTrips = trips.stream()
+//                            .filter(trip -> trip.getScheduleId().equals(scheduleResponse.getId()))
+//                            .filter(trip -> ticketCount == null || trip.getSeatsAvailable() > ticketCount)
+//                            .collect(Collectors.toList());
+//
+//                    if (timeInDay != null && !timeInDay.isEmpty()) {
+//                        filteredTrips = filterByTimeSlots(List.of(timeInDay.split("-")), filteredTrips);
+//                    }
+//
+//                    if (floorNo != null && !floorNo.isEmpty()) {
+//                        List<Integer> floorNoList = Arrays.stream(floorNo.split("-"))
+//                                .map(Integer::parseInt)
+//                                .collect(Collectors.toList());
+//                        filteredTrips = filterByFloor(floorNoList, filteredTrips);
+//                    }
                     List<Trip> filteredTrips = trips.stream()
-                            .filter(trip -> trip.getScheduleId().equals(scheduleResponse.getId()))
-                            .filter(trip -> ticketCount == null || trip.getSeatsAvailable() > ticketCount)
+                            .filter(trip -> trip.getScheduleId().equals(scheduleResponse.getId()) &&
+
+                                    (ticketCount == null || trip.getSeatsAvailable() > ticketCount) &&
+
+                                    (timeInDay == null || timeInDay.isEmpty() ||
+                                            checkByTimeSlots(List.of(timeInDay.split("-")), trip)) &&
+
+                                    (floorNo == null || floorNo.isEmpty() ||
+                                            checkByFloor(floorNo, trip)))
                             .collect(Collectors.toList());
-
-                    if (timeInDay != null && !timeInDay.isEmpty()) {
-                        filteredTrips = filterByTimeSlots(List.of(timeInDay.split("-")), filteredTrips);
-                    }
-
-                    if (floorNo != null && !floorNo.isEmpty()) {
-                        List<Integer> floorNoList = Arrays.stream(floorNo.split("-"))
-                                .map(Integer::parseInt)
-                                .collect(Collectors.toList());
-                        filteredTrips = filterByFloor(floorNoList, filteredTrips);
-                    }
 
                     if (!filteredTrips.isEmpty()) {
                         Duration duration = Duration.between(filteredTrips.get(0).getStartTime(), filteredTrips.get(0).getEndTime());
@@ -310,6 +321,7 @@ public class DefaultTripService implements TripService {
     }
 
 
+    //Chưa được dùng tới
     public List<Trip> filterByTimeSlots(List<String> periods, List<Trip> trips) {
         List<Trip> result = new ArrayList<>();
 
@@ -351,7 +363,39 @@ public class DefaultTripService implements TripService {
         return result;
     }
 
+    public Boolean checkByTimeSlots(List<String> periods, Trip trip) {
+        var tripStartTime = trip.getStartTime().toLocalTime();
+        boolean matchesAnyPeriod = periods.stream().anyMatch(period -> {
+            LocalTime start;
+            LocalTime end;
 
+            switch (period) {
+                case "midnight" -> {
+                    start = LocalTime.of(0, 0);
+                    end = LocalTime.of(6, 0);
+                }
+                case "morning" -> {
+                    start = LocalTime.of(6, 0);
+                    end = LocalTime.of(12, 0);
+                }
+                case "afternoon" -> {
+                    start = LocalTime.of(12, 0);
+                    end = LocalTime.of(18, 0);
+                }
+                case "evening" -> {
+                    start = LocalTime.of(18, 0);
+                    end = LocalTime.of(23, 59, 59);
+                }
+                default -> throw new InputInvalidException(List.of("Time in day not valid: " + period));
+            }
+
+            return !tripStartTime.isBefore(start) && tripStartTime.isBefore(end);
+        });
+        return matchesAnyPeriod;
+    }
+
+
+    //Chưa được dùng tới
     public List<Trip> filterByFloor(List<Integer> floorNo, List<Trip> trips) {
         return trips.stream()
                 .filter(trip -> {
@@ -369,6 +413,25 @@ public class DefaultTripService implements TripService {
                 })
                 .collect(Collectors.toList());
     }
+
+
+    public boolean checkByFloor(String floors, Trip trip) {
+        var floorNo = Arrays.stream(floors.split("-"))
+                .map(Integer::parseInt)
+                .collect(Collectors.toList());
+        List<String> seatsReserved = trip.getSeatsReserved();
+        if (floorNo.size() == 1) {
+            int floor = floorNo.get(0);
+            long seatsInFloor = seatsReserved.stream()
+                    .filter(seat -> seat.startsWith(floor == 1 ? "A" : "B"))
+                    .count();
+
+            return floor == 1 ? seatsInFloor < trip.getFirstFloorSeats()
+                    : seatsInFloor < trip.getSecondFloorSeats();
+        }
+        return true;
+    }
+
 
 
 
