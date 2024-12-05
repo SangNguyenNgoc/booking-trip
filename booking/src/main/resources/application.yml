@@ -42,6 +42,10 @@ spring:
               request:
                 per:
                   connection: 5
+  data:
+    web:
+      pageable:
+        one-indexed-parameters: true
 
 logging:
   level:
