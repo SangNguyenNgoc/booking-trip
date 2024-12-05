@@ -306,7 +306,7 @@ public class DefaultBillService implements BillService {
                 .and(BillSpecification.hasTripStartTimeBetween(tripFrom, tripTo))
                 .and(BillSpecification.parentIsNull());
         var bills = billRepository.findAll(spec, pageable);
-        return bills.map(billMapper::toBillGeneral);
+        return bills.map(this::mapToBillGenerate);
     }
 
     private BillGeneral mapToBillGenerate(Bill bill){

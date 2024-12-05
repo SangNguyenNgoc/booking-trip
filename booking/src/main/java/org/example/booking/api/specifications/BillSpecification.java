@@ -25,7 +25,7 @@ public class BillSpecification {
     }
     public static Specification<Bill> hasStatus(Integer statusId){
         return (Root<Bill> root, CriteriaQuery<?> query, CriteriaBuilder cb) ->
-                statusId == null ? null : cb.like(root.get("id"), "%" + statusId + "%");
+                statusId == null ? null : cb.equal(root.get("id"),statusId);
     }
 
     public static Specification<Bill> hasPhoneNumber(String phoneNumber){
