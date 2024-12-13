@@ -47,7 +47,7 @@ public class DefaultStatisticsService implements StatisticsService {
         }
     }
 
-    @KafkaListener(topics = "StatisticsTrips")
+    @KafkaListener(topics = "StatisticTrips")
     private void createTrip(List<Trip> trips) {
         tripRepository.saveAll(trips);
     }
