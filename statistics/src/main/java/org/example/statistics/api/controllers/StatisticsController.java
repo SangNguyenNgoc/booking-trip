@@ -26,7 +26,7 @@ public class StatisticsController {
             description = "This endpoint allows admin get general statistics",
             security = @SecurityRequirement(name = "Bearer Authentication")
     )
-    @GetMapping("")
+    @PostMapping("")
     @PreAuthorize("hasAuthority('SCOPE_ROLE_ADMIN')")
     public ResponseEntity<GeneralStatistics> getGeneralStatistics(@RequestBody StatisticsRequest statisticsRequest){
         return ResponseEntity.ok(statisticsService.getGeneralStatistics(statisticsRequest));
